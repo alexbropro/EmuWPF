@@ -683,15 +683,14 @@ namespace EmuWPF
                             var mainHwnd = new WindowInteropHelper(this).Handle;
                             var (x, y, w, h) = GetEmuHostPixelRect();
                             _activeDolphin.EmbedAt(mainHwnd, x, y, w, h);
-                            MessageBox.Show(
-    $"GameHwnd: {_activeDolphin.GameWindowHandle}\n" +
-    $"ProcessId: {_activeDolphin.ProcessId}",
-    "Dolphin Debug");
-
-                            var refocusTimer = new System.Windows.Threading.DispatcherTimer();
-                            refocusTimer.Interval = TimeSpan.FromMilliseconds(200);
-                            int refocusCount = 0;
-                            refocusTimer.Tick += (s, args) =>
+                            // Prevent Dolphin from capturing mouse permanently
+                            ClipCursor(IntPtr.Zero);
+                            _dolphinActive = true;
+                            EmuHost.IsHitTestVisible = false;
+                            // Single focus timer — no conflicts
+                            _dolphinFocusTimer = new System.Windows.Threading.DispatcherTimer();
+                            _dolphinFocusTimer.Interval = TimeSpan.FromMilliseconds(100);
+                            _dolphinFocusTimer.Tick += (s, args) =>
                             {
                                 if (_activeDolphin?.ProcessId > 0)
                                     _activeDolphin.RefreshGameHandle(_activeDolphin.ProcessId);
@@ -699,9 +698,13 @@ namespace EmuWPF
                                 var hwnd = _activeDolphin?.GameWindowHandle ?? IntPtr.Zero;
                                 if (hwnd != IntPtr.Zero)
                                 {
-                                    SetActiveWindow(hwnd);
-                                    SetForegroundWindow(hwnd);
-                                    SetFocus(hwnd);
+                                    uint currentThread = GetCurrentThreadId();
+                                    uint targetThread = GetWindowThreadProcessId(
+                                        _activeDolphin.GameWindowHandle, out uint _);
+                                    AttachThreadInput(currentThread, targetThread, true);
+                                    SetForegroundWindow(_activeDolphin.GameWindowHandle);
+                                    SetFocus(_activeDolphin.GameWindowHandle);
+                                    AttachThreadInput(currentThread, targetThread, false);
                                 }
                                 refocusCount++;
                                 if (refocusCount >= 15) refocusTimer.Stop();
@@ -785,13 +788,15 @@ namespace EmuWPF
 
             try
             {
+                // Skip all interception for Dolphin — it handles its own focus
+                if (_dolphinActive) return IntPtr.Zero;
+
                 IntPtr gameHwnd = GetActiveEmuHandle();
 
                 if (gameHwnd != IntPtr.Zero)
                 {
                     if (msg == WM_SETFOCUS || msg == WM_ACTIVATE)
                     {
-                        SetActiveWindow(gameHwnd);
                         SetForegroundWindow(gameHwnd);
                         SetFocus(gameHwnd);
                     }

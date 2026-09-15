@@ -1,0 +1,3 @@
+Reading config file C:\Users\alexb\source\repos\EmuWPF\EmuWPF\ECores\SNES\snes9x\snes9x.conf.
+Saving	config file	C:\Users\alexb\source\repos\EmuWPF\EmuWPF\ECores\SNES\snes9x\snes9x.conf
+Saving	config file	C:\Users\alexb\source\repos\EmuWPF\EmuWPF\ECores\SNES\snes9x\snes9x.conf

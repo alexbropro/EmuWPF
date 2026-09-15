@@ -17,18 +17,35 @@ namespace EmuWPF.ECores
         [DllImport("user32.dll")] static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
         [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr hWnd);
         [DllImport("user32.dll")] static extern IntPtr SetFocus(IntPtr hWnd);
-        [DllImport("user32.dll")] private static extern IntPtr SetActiveWindow(IntPtr hWnd);
         [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+        [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hWnd);
 
         delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
         [DllImport("user32.dll")] static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
         [DllImport("user32.dll")] static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-        [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hWnd);
+
+        private static extern bool RegisterRawInputDevices(
+    RAWINPUTDEVICE[] pRawInputDevices, uint uiNumDevices, uint cbSize);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RAWINPUTDEVICE
+        {
+            public ushort usUsagePage;
+            public ushort usUsage;
+            public uint dwFlags;
+            public IntPtr hwndTarget;
+        }
 
         const int SW_HIDE = 0;
         const int SW_SHOW = 5;
         const int GWL_STYLE = -16;
+        const int GWL_EXSTYLE = -20;
         const int WS_CHILD = 0x40000000;
+        const int WS_VISIBLE = 0x10000000;
+        const int WS_CLIPSIBLINGS = 0x04000000;
+        const int WS_CLIPCHILDREN = 0x02000000;
+        const int WS_EX_TOOLWINDOW = 0x00000080;
+        const int WS_EX_NOACTIVATE = 0x08000000;
 
         private Process? _process;
         private IntPtr _gameHwnd = IntPtr.Zero;
@@ -54,36 +71,11 @@ namespace EmuWPF.ECores
                 FileName = exePath,
                 Arguments = $"--exec=\"{gamePath}\" {extraArgs}",
                 WorkingDirectory = Path.GetDirectoryName(exePath)!,
-                UseShellExecute = true
+                UseShellExecute = false,
+                CreateNoWindow = false
             });
 
             if (_process == null) return;
-
-            // Hide console
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                int pid = _process.Id;
-                for (int attempt = 0; attempt < 40; attempt++)
-                {
-                    Thread.Sleep(150);
-                    bool found = false;
-                    EnumWindows((hWnd, _) =>
-                    {
-                        GetWindowThreadProcessId(hWnd, out uint wPid);
-                        if (wPid != (uint)pid) return true;
-                        var sb = new StringBuilder(256);
-                        GetClassName(hWnd, sb, 256);
-                        if (sb.ToString() == "ConsoleWindowClass")
-                        {
-                            ShowWindow(hWnd, SW_HIDE);
-                            found = true;
-                            return false;
-                        }
-                        return true;
-                    }, IntPtr.Zero);
-                    if (found) break;
-                }
-            });
 
             // Wait for main window
             IntPtr hwnd = IntPtr.Zero;
@@ -102,56 +94,13 @@ namespace EmuWPF.ECores
 
             _mainHwnd = hwnd;
 
-            // Wait for game to start rendering
+            // Wait for game to fully load
             Thread.Sleep(3000);
 
-            // Find render window — try by class first
+            // Try to find render window
             IntPtr renderHwnd = IntPtr.Zero;
-            int pid2 = _process.Id;
+            int pid = _process.Id;
 
-            EnumWindows((hWnd, _) =>
-            {
-                GetWindowThreadProcessId(hWnd, out uint wPid);
-                if (wPid != (uint)pid2) return true;
-                if (!IsWindowVisible(hWnd)) return true;
-                if (hWnd == _mainHwnd) return true;
-
-                var sb = new StringBuilder(256);
-                GetClassName(hWnd, sb, 256);
-                var cls = sb.ToString();
-
-                if (cls.Contains("Qt") || cls.Contains("Render") || cls.Contains("GLFW"))
-                {
-                    renderHwnd = hWnd;
-                    return false;
-                }
-                return true;
-            }, IntPtr.Zero);
-
-            // Use render window if found, otherwise use main window
-            _gameHwnd = renderHwnd != IntPtr.Zero ? renderHwnd : hwnd;
-        }
-
-        public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)
-        {
-            if (_gameHwnd == IntPtr.Zero) return;
-
-            // Hide main UI if different from game window
-            if (_mainHwnd != IntPtr.Zero && _mainHwnd != _gameHwnd)
-                ShowWindow(_mainHwnd, SW_HIDE);
-
-            SetWindowLong(_gameHwnd, GWL_STYLE, WS_CHILD);
-            SetParent(_gameHwnd, parentHwnd);
-            MoveWindow(_gameHwnd, x, y, width, height, true);
-            ShowWindow(_gameHwnd, SW_SHOW);
-            SetForegroundWindow(_gameHwnd);
-            SetFocus(_gameHwnd);
-
-        }
-
-        public void RefreshGameHandle(int pid)
-        {
-            if (pid == 0) return;
             EnumWindows((hWnd, _) =>
             {
                 GetWindowThreadProcessId(hWnd, out uint wPid);
@@ -165,11 +114,32 @@ namespace EmuWPF.ECores
 
                 if (cls.Contains("Qt") || cls.Contains("Render"))
                 {
-                    _gameHwnd = hWnd;
+                    renderHwnd = hWnd;
                     return false;
                 }
                 return true;
             }, IntPtr.Zero);
+
+            _gameHwnd = renderHwnd != IntPtr.Zero ? renderHwnd : hwnd;
+        }
+
+        public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)
+        {
+            if (_gameHwnd == IntPtr.Zero) return;
+
+            // Hide main UI
+            if (_mainHwnd != IntPtr.Zero && _mainHwnd != _gameHwnd)
+                ShowWindow(_mainHwnd, SW_HIDE);
+
+            SetParent(_gameHwnd, parentHwnd);
+            SetWindowLong(_gameHwnd, GWL_STYLE,
+                WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+            SetWindowLong(_gameHwnd, GWL_EXSTYLE,
+                WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
+            MoveWindow(_gameHwnd, x, y, width, height, true);
+            ShowWindow(_gameHwnd, SW_SHOW);
+            SetForegroundWindow(_gameHwnd);
+            SetFocus(_gameHwnd);
         }
 
         public void ResizeTo(int x, int y, int width, int height)
@@ -200,33 +170,10 @@ namespace EmuWPF.ECores
 
                 foreach (var proc in Process.GetProcessesByName("Dolphin"))
                 {
-                    try
-                    {
-                        proc.Kill(entireProcessTree: true);
-                        proc.WaitForExit(2000);
-                    }
-                    catch { }
+                    try { proc.Kill(); } catch { }
                 }
             }
             catch { }
-        }
-
-        private void HideConsoleWindowsForPid(int pid)
-        {
-            EnumWindows((hWnd, _) =>
-            {
-                try
-                {
-                    GetWindowThreadProcessId(hWnd, out uint wPid);
-                    if (wPid != (uint)pid) return true;
-                    var sb = new StringBuilder(256);
-                    GetClassName(hWnd, sb, 256);
-                    if (sb.ToString() == "ConsoleWindowClass")
-                        ShowWindow(hWnd, SW_HIDE);
-                }
-                catch { }
-                return true;
-            }, IntPtr.Zero);
         }
 
         private void TryTerminateOtherEmulators()

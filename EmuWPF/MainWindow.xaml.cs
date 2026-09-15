@@ -41,24 +41,73 @@ namespace EmuWPF
 
         private bool _isLaunching = false;
 
-        [DllImport("user32.dll")] static extern IntPtr SetFocus(IntPtr hWnd);
-        [DllImport("user32.dll")] private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        private static LowLevelKeyboardProc? _keyboardProc;
+        private static IntPtr _keyboardHook = IntPtr.Zero;
+
+        [DllImport("user32.dll")] private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+        [DllImport("user32.dll")] private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+        [DllImport("user32.dll")] private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+        [DllImport("kernel32.dll")] private static extern IntPtr GetModuleHandle(string lpModuleName);
+        [DllImport("user32.dll")] private static extern IntPtr PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
         [DllImport("user32.dll")] private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
-        [DllImport("user32.dll")] private static extern uint GetCurrentThreadId();
-        [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+        [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
+        [DllImport("user32.dll")] private static extern IntPtr GetFocus();
+        [DllImport("user32.dll")] private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
+        [DllImport("user32.dll")] private static extern void AllowSetForegroundWindow(int dwProcessId);
+        [DllImport("user32.dll")] private static extern bool ClipCursor(IntPtr lpRect);
+        [DllImport("user32.dll")] static extern IntPtr SetFocus(IntPtr hWnd);
         [DllImport("user32.dll")] private static extern IntPtr SetActiveWindow(IntPtr hWnd);
         [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr hWnd);
-        [DllImport("user32.dll")] private static extern bool MoveWindow(IntPtr hWnd, int x, int y, int w, int h, bool repaint);
-        [DllImport("user32.dll")] private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
-        [DllImport("user32.dll")] private static extern IntPtr GetDC(IntPtr hWnd);
-        [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
-
         [DllImport("shell32.dll")] private static extern IntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
         [DllImport("user32.dll")] private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
         [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll")] private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+        
+
+        [DllImport("user32.dll")]
+        private static extern bool RegisterRawInputDevices(
+    RAWINPUTDEVICE[] pRawInputDevices, uint uiNumDevices, uint cbSize);
 
         [StructLayout(LayoutKind.Sequential)]
+        private struct RAWINPUTDEVICE
+        {
+            public ushort usUsagePage;
+            public ushort usUsage;
+            public uint dwFlags;
+            public IntPtr hwndTarget;
+        }
+        private struct INPUT
+        {
+            public uint type;
+            public INPUTUNION u;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct INPUTUNION
+        {
+            [FieldOffset(0)] public KEYBDINPUT ki;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct KEYBDINPUT
+        {
+            public ushort wVk;
+            public ushort wScan;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        private const uint INPUT_KEYBOARD = 1;
+        private const uint KEYEVENTF_KEYUP = 0x0002;
+
+
 
         private struct APPBARDATA
         {
@@ -76,6 +125,97 @@ namespace EmuWPF
         private AppSettings _settings = AppSettings.Load();
         private N64EmuInp _n64Controls = N64EmuInp.Load();
         private TextBox? _activeBindBox = null;
+
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x0100;
+        private const int WM_KEYUP = 0x0101;
+
+        private bool _dolphinActive = false;
+
+        private System.Windows.Threading.DispatcherTimer? _dolphinFocusTimer;
+
+
+        private void RegisterDolphinRawInput(IntPtr dolphinHwnd)
+        {
+            var rid = new RAWINPUTDEVICE[]
+            {
+        new RAWINPUTDEVICE
+        {
+            usUsagePage = 0x01, // HID_USAGE_PAGE_GENERIC
+            usUsage     = 0x06, // HID_USAGE_GENERIC_KEYBOARD
+            dwFlags     = 0x00000100, // RIDEV_INPUTSINK — receive input even when not focused
+            hwndTarget  = dolphinHwnd
+        }
+            };
+
+            RegisterRawInputDevices(rid, (uint)rid.Length,
+                (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(RAWINPUTDEVICE)));
+        }
+        private void BtnAccentColour_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as System.Windows.Controls.Button;
+            if (btn?.Tag is not string hex) return;
+
+            _settings.AccentColour = hex;
+            ApplyAccentColour(hex);
+        }
+
+        private void BtnBgColour_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as System.Windows.Controls.Button;
+            if (btn?.Tag is not string hex) return;
+
+            _settings.BackgroundColour = hex;
+            ApplyBackgroundColour(hex);
+        }
+
+        private void InstallKeyboardHook()
+        {
+            _keyboardProc = KeyboardHookCallback;
+            using var process = System.Diagnostics.Process.GetCurrentProcess();
+            using var module = process.MainModule!;
+            _keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, _keyboardProc,
+                GetModuleHandle(module.ModuleName!), 0);
+        }
+
+        private void UninstallKeyboardHook()
+        {
+            if (_keyboardHook != IntPtr.Zero)
+            {
+                UnhookWindowsHookEx(_keyboardHook);
+                _keyboardHook = IntPtr.Zero;
+            }
+        }
+        
+
+        private IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && _activeDolphin != null)
+            {
+                var hwnd = _activeDolphin.GameWindowHandle;
+                if (hwnd != IntPtr.Zero)
+                {
+                    int vkCode = System.Runtime.InteropServices.Marshal.ReadInt32(lParam, 0);
+                    bool isKeyUp = (int)wParam == WM_KEYUP;
+
+                    // Send as both WM_KEYDOWN and WM_INPUT to cover both Qt input paths
+                    int scanCode = System.Runtime.InteropServices.Marshal.ReadInt32(lParam, 4);
+                    int flags = System.Runtime.InteropServices.Marshal.ReadInt32(lParam, 8);
+
+                    bool isExtended = (flags & 0x01) != 0;
+                    int extendedBit = isExtended ? (1 << 24) : 0;
+                    int previousState = isKeyUp ? (1 << 30) : 0;
+                    int transState = isKeyUp ? (1 << 31) : 0;
+
+                    IntPtr keyLParam = new IntPtr(
+                        1 | (scanCode << 16) | extendedBit | previousState | transState);
+
+                    PostMessage(hwnd, isKeyUp ? (uint)WM_KEYUP : (uint)WM_KEYDOWN,
+                        new IntPtr(vkCode), keyLParam);
+                }
+            }
+            return CallNextHookEx(_keyboardHook, nCode, wParam, lParam);
+        }
 
         private void ShowTaskbar(bool show)
         {
@@ -104,6 +244,9 @@ namespace EmuWPF
         {
             InitializeComponent();
             LoadSettingsIntoUI();
+            this.WindowStyle = WindowStyle.None;
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.NoResize;
             this.ResizeMode = ResizeMode.NoResize;
 
 
@@ -359,6 +502,18 @@ namespace EmuWPF
         {
             EmucoreSettingsView.Visibility = Visibility.Collapsed;
             EmucoresFolderView.Visibility = Visibility.Visible;
+
+            // Reset tabs so Controls tab reloads fresh next time
+            TabBtnCore.Tag = "1";
+            TabBtnControls.Tag = "0";
+            TabCore.Visibility = Visibility.Visible;
+            TabControls.Visibility = Visibility.Collapsed;
+
+            // Hide all control panels
+            N64ControlsPanel.Visibility = Visibility.Collapsed;
+            NESControlsPanel.Visibility = Visibility.Collapsed;
+            SNESControlsPanel.Visibility = Visibility.Collapsed;
+            DolphinControlsPanel.Visibility = Visibility.Collapsed;
         }
 
         private void AddCore_Click(object sender, RoutedEventArgs e)
@@ -487,16 +642,7 @@ namespace EmuWPF
             targetW = Math.Min(targetW, maxW);
             targetH = Math.Min(targetH, maxH);
 
-            MessageBox.Show(
-    $"targetW: {targetW}\n" +
-    $"targetH: {targetH}\n" +
-    $"wa.Width: {wa.Width}\n" +
-    $"wa.Height: {wa.Height}\n" +
-    $"dipW: {dipW}\n" +
-    $"dipH: {dipH}\n" +
-    $"scale: {scale}\n" +
-    $"headerDip: {headerDip}",
-    "Debug");
+            
 
             this.Width = targetW;
             this.Height = targetH;
@@ -505,7 +651,7 @@ namespace EmuWPF
             this.Top = Math.Max(wa.Top, (wa.Height - targetH) / 2 + wa.Top);
 
             this.UpdateLayout();
-            MessageBox.Show($"Actual after set: {this.ActualWidth} x {this.ActualHeight}", "After Resize");
+            
         }
 
         private (int x, int y, int w, int h) GetEmuHostPixelRect()
@@ -555,7 +701,7 @@ namespace EmuWPF
                         double emuW = int.TryParse(resParts[0], out int rw) ? rw : 800;
                         double emuH = int.TryParse(resParts.Length > 1 ? resParts[1] : "", out int rh) ? rh : 600;
                         ResizeWindowForEmuHost((int)emuW, (int)emuH);
-                        this.ResizeMode = ResizeMode.NoResize;
+                         
 
                         PageLibrary.Visibility = Visibility.Collapsed;
                         PageNowPlaying.Visibility = Visibility.Visible;
@@ -602,13 +748,13 @@ namespace EmuWPF
                 {
                     SetTaskbarAutoHide(true);  // hide taskbar
                     this.WindowStyle = WindowStyle.None;
-                    this.WindowState = WindowState.Normal;
+                    this.WindowState = WindowState.Maximized;
                     this.ResizeMode = ResizeMode.NoResize;
                     this.Top = 0;
                     this.Left = 0;
                     this.Width = SystemParameters.PrimaryScreenWidth;
                     this.Height = SystemParameters.PrimaryScreenHeight;
-
+                    ShowTaskbar(false);
                     PageLibrary.Visibility = Visibility.Collapsed;
                     PageNowPlaying.Visibility = Visibility.Visible;
 
@@ -655,6 +801,8 @@ namespace EmuWPF
                 }
                 else if (isSNES)
                 {
+                    SetTaskbarAutoHide(true);
+                    ShowTaskbar(false);
                     _activeSNES = new SNESEMU();
                     System.Threading.Tasks.Task.Run(() =>
                     {
@@ -663,9 +811,28 @@ namespace EmuWPF
                         {
                             PageNowPlaying.UpdateLayout();
                             EmuHost.UpdateLayout();
+
                             var mainHwnd = new WindowInteropHelper(this).Handle;
                             var (x, y, w, h) = GetEmuHostPixelRect();
+
                             _activeSNES.EmbedAt(mainHwnd, x, y, w, h);
+
+                            var refocusTimer = new System.Windows.Threading.DispatcherTimer();
+                            refocusTimer.Interval = TimeSpan.FromMilliseconds(200);
+                            int refocusCount = 0;
+                            refocusTimer.Tick += (s, args) =>
+                            {
+                                if (_activeSNES?.GameWindowHandle != IntPtr.Zero)
+                                {
+                                    SetFocus(_activeSNES.GameWindowHandle);
+                                    SetForegroundWindow(_activeSNES.GameWindowHandle);
+                                    
+                                }
+                                refocusCount++;
+                                if (refocusCount >= 15) refocusTimer.Stop();
+                                SetTaskbarAutoHide(true);
+                            };
+                            refocusTimer.Start();
                             _isLaunching = false;
                         });
                     });
@@ -680,36 +847,17 @@ namespace EmuWPF
                         {
                             PageNowPlaying.UpdateLayout();
                             EmuHost.UpdateLayout();
+
                             var mainHwnd = new WindowInteropHelper(this).Handle;
                             var (x, y, w, h) = GetEmuHostPixelRect();
-                            _activeDolphin.EmbedAt(mainHwnd, x, y, w, h);
-                            // Prevent Dolphin from capturing mouse permanently
-                            ClipCursor(IntPtr.Zero);
-                            _dolphinActive = true;
-                            EmuHost.IsHitTestVisible = false;
-                            // Single focus timer — no conflicts
-                            _dolphinFocusTimer = new System.Windows.Threading.DispatcherTimer();
-                            _dolphinFocusTimer.Interval = TimeSpan.FromMilliseconds(100);
-                            _dolphinFocusTimer.Tick += (s, args) =>
-                            {
-                                if (_activeDolphin?.ProcessId > 0)
-                                    _activeDolphin.RefreshGameHandle(_activeDolphin.ProcessId);
 
-                                var hwnd = _activeDolphin?.GameWindowHandle ?? IntPtr.Zero;
-                                if (hwnd != IntPtr.Zero)
-                                {
-                                    uint currentThread = GetCurrentThreadId();
-                                    uint targetThread = GetWindowThreadProcessId(
-                                        _activeDolphin.GameWindowHandle, out uint _);
-                                    AttachThreadInput(currentThread, targetThread, true);
-                                    SetForegroundWindow(_activeDolphin.GameWindowHandle);
-                                    SetFocus(_activeDolphin.GameWindowHandle);
-                                    AttachThreadInput(currentThread, targetThread, false);
-                                }
-                                refocusCount++;
-                                if (refocusCount >= 15) refocusTimer.Stop();
-                            };
-                            refocusTimer.Start();
+                            _activeDolphin.EmbedAt(mainHwnd, x, y, w, h);
+                            RegisterDolphinRawInput(_activeDolphin.GameWindowHandle);
+
+                            // Give Dolphin focus
+                            SetForegroundWindow(_activeDolphin.GameWindowHandle);
+                            SetFocus(_activeDolphin.GameWindowHandle);
+
                             _isLaunching = false;
                         });
                     });
@@ -723,23 +871,37 @@ namespace EmuWPF
 
         private void BtnStopEmu_Click(object sender, RoutedEventArgs e)
         {
+ 
+
+
+            _dolphinFocusTimer?.Stop();
+            _dolphinFocusTimer = null;
+            _dolphinActive = false;
+            EmuHost.IsHitTestVisible = true;
+   
+
             _activeEmu?.Stop();
             _activeDolphin?.Stop();
             _activeNES?.Stop();
             _activeSNES?.Stop();
+
             _activeEmu = null;
+            _activeDolphin = null;
+            _activeNES = null;
+            _activeSNES = null;
             _isLaunching = false;
 
-            // Hide Now Playing from sidebar
             BNP.Visibility = Visibility.Collapsed;
             BNP.Tag = "0";
 
-            // Go back to Library
             PageNowPlaying.Visibility = Visibility.Collapsed;
             PageLibrary.Visibility = Visibility.Visible;
             BLibrary.Tag = "1";
-            ShowTaskbar(true);
 
+            this.WindowStyle = WindowStyle.None;
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.NoResize;
+            ShowTaskbar(true);
         }
 
         private void BrowseCore_Click(object sender, RoutedEventArgs e)
@@ -788,9 +950,6 @@ namespace EmuWPF
 
             try
             {
-                // Skip all interception for Dolphin — it handles its own focus
-                if (_dolphinActive) return IntPtr.Zero;
-
                 IntPtr gameHwnd = GetActiveEmuHandle();
 
                 if (gameHwnd != IntPtr.Zero)
@@ -826,6 +985,7 @@ namespace EmuWPF
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            UninstallKeyboardHook();
             ShowTaskbar(true);
             try
             {
@@ -842,8 +1002,6 @@ namespace EmuWPF
 
         private void LoadSettingsIntoUI()
         {
-            TxtAccentColour.Text = _settings.AccentColour;
-            TxtBgColour.Text = _settings.BackgroundColour;
             SliderVolume.Value = _settings.Volume;
             ChkMute.IsChecked = _settings.Muted;
             ChkFullscreen.IsChecked = _settings.Fullscreen;
@@ -865,8 +1023,6 @@ namespace EmuWPF
 
         private void BtnSaveSettings_Click(object sender, RoutedEventArgs e)
         {
-            _settings.AccentColour = TxtAccentColour.Text;
-            _settings.BackgroundColour = TxtBgColour.Text;
             _settings.Volume = (int)SliderVolume.Value;
             _settings.Muted = ChkMute.IsChecked == true;
             _settings.Fullscreen = ChkFullscreen.IsChecked == true;
@@ -887,30 +1043,25 @@ namespace EmuWPF
                     System.Windows.Media.ColorConverter.ConvertFromString(hex);
                 var brush = new System.Windows.Media.SolidColorBrush(colour);
 
-                // Update accent preview swatch
-                AccentPreview.Background = brush;
-
-                // Push new colour into App resources so all styles pick it up
+                // Update all accent resources
                 Application.Current.Resources["BrCyan"] = brush;
-                Application.Current.Resources["ColCyan"] = colour;
 
-                // Update sidebar highlight background with transparency
-                var dimColour = System.Windows.Media.Color.FromArgb(38, colour.R, colour.G, colour.B);
+                var dimColour = System.Windows.Media.Color.FromArgb(
+                    38, colour.R, colour.G, colour.B);
                 Application.Current.Resources["BrCyanDim"] =
                     new System.Windows.Media.SolidColorBrush(dimColour);
 
-                var borderColour = System.Windows.Media.Color.FromArgb(64, colour.R, colour.G, colour.B);
+                var borderMid = System.Windows.Media.Color.FromArgb(
+                    64, colour.R, colour.G, colour.B);
                 Application.Current.Resources["BrBorderMid"] =
-                    new System.Windows.Media.SolidColorBrush(borderColour);
+                    new System.Windows.Media.SolidColorBrush(borderMid);
 
-                var softBorder = System.Windows.Media.Color.FromArgb(31, colour.R, colour.G, colour.B);
+                var border = System.Windows.Media.Color.FromArgb(
+                    31, colour.R, colour.G, colour.B);
                 Application.Current.Resources["BrBorder"] =
-                    new System.Windows.Media.SolidColorBrush(softBorder);
+                    new System.Windows.Media.SolidColorBrush(border);
             }
-            catch
-            {
-                MessageBox.Show("Invalid hex colour. Use format #RRGGBB", "Invalid Colour");
-            }
+            catch { }
         }
 
         private void ApplyBackgroundColour(string hex)
@@ -921,20 +1072,41 @@ namespace EmuWPF
                     System.Windows.Media.ColorConverter.ConvertFromString(hex);
                 var brush = new System.Windows.Media.SolidColorBrush(colour);
 
-                BgPreview.Background = brush;
+                // Derive surface and raised as slightly lighter versions
+                byte r = colour.R, g = colour.G, b = colour.B;
+
+                var surfaceColour = System.Windows.Media.Color.FromRgb(
+                    (byte)Math.Min(r + 8, 255),
+                    (byte)Math.Min(g + 8, 255),
+                    (byte)Math.Min(b + 14, 255));
+
+                var raisedColour = System.Windows.Media.Color.FromRgb(
+                    (byte)Math.Min(r + 16, 255),
+                    (byte)Math.Min(g + 16, 255),
+                    (byte)Math.Min(b + 28, 255));
+
+                var hoverColour = System.Windows.Media.Color.FromRgb(
+                    (byte)Math.Min(r + 24, 255),
+                    (byte)Math.Min(g + 24, 255),
+                    (byte)Math.Min(b + 42, 255));
+
+                Application.Current.Resources["BrVoid"] = brush;
+                Application.Current.Resources["BrDeep"] = brush;
+                Application.Current.Resources["BrSurface"] =
+                    new System.Windows.Media.SolidColorBrush(surfaceColour);
+                Application.Current.Resources["BrRaised"] =
+                    new System.Windows.Media.SolidColorBrush(raisedColour);
+                Application.Current.Resources["BrHover"] =
+                    new System.Windows.Media.SolidColorBrush(hoverColour);
+
                 this.Background = brush;
             }
-            catch
-            {
-                MessageBox.Show("Invalid hex colour. Use format #RRGGBB", "Invalid Colour");
-            }
+            catch { }
         }
 
-        private void BtnApplyAccent_Click(object sender, RoutedEventArgs e)
-            => ApplyAccentColour(TxtAccentColour.Text);
 
-        private void BtnApplyBg_Click(object sender, RoutedEventArgs e)
-            => ApplyBackgroundColour(TxtBgColour.Text);
+
+
 
         // ── Audio ────────────────────────────────────────────────────────────────
 
@@ -1006,6 +1178,14 @@ namespace EmuWPF
 
             if (btn == TabBtnControls)
             {
+                N64ControlsPanel.Visibility = Visibility.Collapsed;
+                NESControlsPanel.Visibility = Visibility.Collapsed;
+                SNESControlsPanel.Visibility = Visibility.Collapsed;
+                DolphinControlsPanel.Visibility = Visibility.Collapsed;
+
+                ToggleController.Visibility = _currentSystem == "N64"
+                    ? Visibility.Visible : Visibility.Collapsed;
+
                 switch (_currentSystem)
                 {
                     case "NES": LoadNESControlsIntoUI(); break;
@@ -1093,8 +1273,8 @@ namespace EmuWPF
                 case "SNES":
                     SaveSNESControlsFromUI();
                     _snesControls.Save();
-                    var snesCfgDir = FindEmulatorConfigDir("SNES");
-                    if (snesCfgDir != null) _snesControls.ApplyToSnes9x(snesCfgDir);
+                    var snesDir = FindEmulatorExeDir("SNES");
+                    if (snesDir != null) _snesControls.ApplyToSnes9x(snesDir);
                     break;
                 case "N64":
                     SaveControlsFromUI();
@@ -1122,7 +1302,7 @@ namespace EmuWPF
                 string candidate = system switch
                 {
                     "NES" => System.IO.Path.Combine(dir.FullName, "ECores", "NES", "FCEUX", "fceux64.exe"),
-                    "SNES" => System.IO.Path.Combine(dir.FullName, "ECores", "SNES", "Snes9x", "snes9x.exe"),
+                    "SNES" => System.IO.Path.Combine(dir.FullName, "ECores", "SNES", "Snes9x", "snes9x-x64.exe"),
                     _ => ""
                 };
 
@@ -1225,6 +1405,29 @@ namespace EmuWPF
                 (Color)ColorConverter.ConvertFromString("#9090B0"));
 
             
+        }
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (_activeDolphin == null) return;
+            var hwnd = _activeDolphin.GameWindowHandle;
+            if (hwnd == IntPtr.Zero) return;
+
+            const uint WM_KEYDOWN = 0x0100;
+            var vk = System.Windows.Input.KeyInterop.VirtualKeyFromKey(e.Key);
+            SendMessage(hwnd, WM_KEYDOWN, new IntPtr(vk), IntPtr.Zero);
+            e.Handled = true;
+        }
+
+        private void Window_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (_activeDolphin == null) return;
+            var hwnd = _activeDolphin.GameWindowHandle;
+            if (hwnd == IntPtr.Zero) return;
+
+            const uint WM_KEYUP = 0x0101;
+            var vk = System.Windows.Input.KeyInterop.VirtualKeyFromKey(e.Key);
+            SendMessage(hwnd, WM_KEYUP, new IntPtr(vk), IntPtr.Zero);
+            e.Handled = true;
         }
 
         private void ToggleNunchuck_Changed(object sender, RoutedEventArgs e)

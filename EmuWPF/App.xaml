@@ -6,7 +6,7 @@
     <Application.Resources>
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#9090B0"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrText2}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="12,9"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -28,14 +28,14 @@
                         <ControlTemplate.Triggers>
                             <!-- Hover: lighten background -->
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#1A1A2E"/>
-                                <Setter Property="Foreground" Value="#E8E8F0"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrText1}"/>
                             </Trigger>
 
                             <!-- Selected: cyan highlight (Tag="1" means selected) -->
                             <Trigger Property="Tag" Value="1">
-                                <Setter TargetName="Bd" Property="Background" Value="#2600F0FF"/>
-                                <Setter Property="Foreground" Value="#00F0FF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrCyanDim}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrCyan}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
 
@@ -44,9 +44,9 @@
             </Setter>
         </Style>
         <Style x:Key="PrimaryBtn" TargetType="Button">
-            <Setter Property="Background" Value="#2600F0FF"/>
-            <Setter Property="Foreground" Value="#00F0FF"/>
-            <Setter Property="BorderBrush" Value="#4000F0FF"/>
+            <Setter Property="Background" Value="{DynamicResource BrCyanDim}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrCyan}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrBorderMid}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="16,7"/>
             <Setter Property="FontSize" Value="13"/>
@@ -66,8 +66,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#4000F0FF"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#00F0FF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrBorderMid}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource BrCyan}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
@@ -81,8 +81,8 @@
         <!-- ── SecondaryBtn ── -->
         <Style x:Key="SecondaryBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#9090B0"/>
-            <Setter Property="BorderBrush" Value="#1F00F0FF"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrText2}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="16,7"/>
             <Setter Property="FontSize" Value="13"/>
@@ -101,9 +101,9 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#1A1A2E"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#4000F0FF"/>
-                                <Setter Property="Foreground" Value="#E8E8F0"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrHover}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource BrBorderMid}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrText1}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
@@ -116,14 +116,15 @@
 
         <!-- ── DarkTextBox ── -->
         <Style x:Key="DarkTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#0F0F1A"/>
-            <Setter Property="Foreground" Value="#9090B0"/>
-            <Setter Property="BorderBrush" Value="#1F00F0FF"/>
+            <Setter Property="Background" Value="{DynamicResource BrSurface}"/>
+            <!-- TextBoxes use standard text colour now (BrText1) instead of grey -->
+            <Setter Property="Foreground" Value="{DynamicResource BrText1}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="CaretBrush" Value="#00F0FF"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource BrCyan}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
@@ -139,16 +140,16 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="BorderBrush" Value="#4000F0FF"/>
-                    <Setter Property="Foreground" Value="#E8E8F0"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource BrBorderMid}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource BrText1}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="{x:Type ToggleButton}" TargetType="ToggleButton">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#9090B0"/>
-            <Setter Property="BorderBrush" Value="#1F00F0FF"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrText2}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,6"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -166,17 +167,33 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#2600F0FF"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#00F0FF"/>
-                                <Setter Property="Foreground" Value="#00F0FF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrCyanDim}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource BrCyan}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrCyan}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#1A1A2E"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrHover}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Theme brushes (used via DynamicResource throughout the app) -->
+        <!-- Main accent ("Standard") tuned to a slightly less neon, more standard cyan -->
+        <SolidColorBrush x:Key="BrCyan"      Color="#00AEEF"/>
+        <SolidColorBrush x:Key="BrCyanDim"   Color="#2600AEEF"/>
+        <SolidColorBrush x:Key="BrBorder"    Color="#1F00AEEF"/>
+        <SolidColorBrush x:Key="BrBorderMid" Color="#4000AEEF"/>
+        <!-- Surface/deep/void adjusted to darker blacks per request -->
+        <SolidColorBrush x:Key="BrRaised"    Color="#141422"/>
+        <SolidColorBrush x:Key="BrSurface"   Color="#060609"/> <!-- darker surface -->
+        <SolidColorBrush x:Key="BrDeep"      Color="#030304"/> <!-- darker deep (near-black) -->
+        <SolidColorBrush x:Key="BrVoid"      Color="#000000"/> <!-- full black -->
+        <SolidColorBrush x:Key="BrText1"     Color="#E8E8F0"/>
+        <SolidColorBrush x:Key="BrText2"     Color="#9090B0"/>
+        <SolidColorBrush x:Key="BrText3"     Color="#555570"/>
+        <SolidColorBrush x:Key="BrHover"     Color="#1A1A2E"/>
     </Application.Resources>
 </Application>

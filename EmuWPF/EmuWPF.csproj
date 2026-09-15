@@ -95,5 +95,10 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 </ItemGroup>
+	<ItemGroup>
+	  <None Update="ECores\SNES\snes9x\Valid.Ext">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 
 </Project>

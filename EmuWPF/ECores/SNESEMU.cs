@@ -51,7 +51,8 @@ namespace EmuWPF.ECores
                 FileName = exePath,
                 Arguments = $"\"{gamePath}\"",
                 WorkingDirectory = Path.GetDirectoryName(exePath)!,
-                UseShellExecute = true
+                UseShellExecute = false,
+                CreateNoWindow = false
             });
 
             if (_process == null) return;
@@ -70,25 +71,58 @@ namespace EmuWPF.ECores
             IntPtr hwnd = IntPtr.Zero;
             for (int i = 0; i < 60; i++)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(50);
                 try { _process.Refresh(); } catch { break; }
                 hwnd = _process.MainWindowHandle;
+
                 if (hwnd != IntPtr.Zero) break;
+                ShowWindow(hwnd, SW_HIDE);
             }
 
-            if (hwnd == IntPtr.Zero) hwnd = FindWindow(null, "Snes9x");
+            if (hwnd == IntPtr.Zero) hwnd = FindWindow(null, "Snes9x 1.62.3");
+            if (hwnd == IntPtr.Zero) hwnd = FindWindow(null, "Snes9x-x64");
+            if (hwnd == IntPtr.Zero) hwnd = FindWindow("Snes9xClass", null);
 
             if (hwnd == IntPtr.Zero) return;
-
+            
             _gameHwnd = hwnd;
-            Thread.Sleep(500);
+            
+           
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    System.Threading.Thread.Sleep(200);
+                    IntPtr snesHwnd = FindWindow(null, "Snes9x 1.62.3");
+                    if (snesHwnd != IntPtr.Zero)
+                    {
+                        const int GWL_EXSTYLE = -20;
+                        const int WS_EX_TOOLWINDOW = 0x00000080;
+                        SetWindowLong(snesHwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
+                        break;
+                    }
+                }
+            });
+            Thread.Sleep(1800);
+            ShowWindow(_gameHwnd, SW_SHOW);
         }
 
         public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)
         {
             if (_gameHwnd == IntPtr.Zero) return;
-            SetWindowLong(_gameHwnd, GWL_STYLE, WS_CHILD);
+
+            const int GWL_STYLE = -16;
+            const int GWL_EXSTYLE = -20;
+            const int WS_CHILD = 0x40000000;
+            const int WS_VISIBLE = 0x10000000;
+            const int WS_CLIPSIBLINGS = 0x04000000;
+            const int WS_CLIPCHILDREN = 0x02000000;
+            const int WS_EX_TOOLWINDOW = 0x00000080;
+            const int WS_EX_NOACTIVATE = 0x08000000;
+
             SetParent(_gameHwnd, parentHwnd);
+            SetWindowLong(_gameHwnd, GWL_STYLE, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+            SetWindowLong(_gameHwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
             MoveWindow(_gameHwnd, x, y, width, height, true);
             ShowWindow(_gameHwnd, SW_SHOW);
             SetForegroundWindow(_gameHwnd);
@@ -175,7 +209,7 @@ namespace EmuWPF.ECores
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             while (dir != null)
             {
-                var snes9x = Path.Combine(dir.FullName, "ECores", "SNES", "Snes9x", "snes9x.exe");
+                var snes9x = Path.Combine(dir.FullName, "ECores", "SNES", "snes9x", "snes9x-x64.exe");
                 if (File.Exists(snes9x)) return snes9x;
                 dir = dir.Parent;
             }

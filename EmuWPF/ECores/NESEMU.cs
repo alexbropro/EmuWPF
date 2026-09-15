@@ -85,9 +85,11 @@ namespace EmuWPF.ECores
             _gameHwnd = hwnd;
 
             // Wait for FCEUX to fully settle then force its size
-            Thread.Sleep(800);
+            
+            Thread.Sleep(200);
             MoveWindow(hwnd, 0, 0, 512, 480, true);
             Thread.Sleep(200);
+            
         }
 
         public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)

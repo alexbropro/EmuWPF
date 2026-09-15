@@ -3,11 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:EmuWPF"
+        xmlns:local="clr-namespace:EmuWPF" 
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
         Closing="Window_Closing"
-        Background="#0A0A12"
+        Background="{DynamicResource BrDeep}"
+        KeyDown="Window_KeyDown" KeyUp="Window_KeyUp"
         WindowState="Maximized">
     <Grid>
 
@@ -18,13 +19,13 @@
 
 
         <Border Grid.Column="0"
-            Background="#0F0F1A"
-            BorderBrush="#1F00F0FF"
+            Background="{DynamicResource BrSurface}"
+            BorderBrush="{DynamicResource BrBorder}"
             BorderThickness="0,0,1,0">
 
             <StackPanel Margin="10">
                 <TextBlock Text="ProjNimu"
-                       Foreground="#00F0FF"
+                       Foreground="{DynamicResource BrCyan}"
                        FontSize="16"
                        FontWeight="Bold"
                        Margin="0,10,0,20"
@@ -70,7 +71,7 @@
 
 
         <Border Grid.Column="1"
-            Background="#0F0F1A">
+            Background="{DynamicResource BrSurface}">
 
             <Grid>
 
@@ -80,12 +81,12 @@
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center">
                     <TextBlock Text="EmuHub"
-                       Foreground="#00F0FF"
+                       Foreground="{DynamicResource BrCyan}"
                        FontSize="36"
                        FontWeight="Bold"
                        HorizontalAlignment="Center"/>
                     <TextBlock Text="Your retro game library"
-                       Foreground="#555570"
+                       Foreground="{DynamicResource BrText3}"
                        FontSize="14"
                        HorizontalAlignment="Center"
                        Margin="0,8,0,0"/>
@@ -110,7 +111,7 @@
                         Click="FilterBtn_Click">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Fill="#E74C3C" Margin="0,0,6,0"/>
-                                <TextBlock Text="NES"/>
+                                <TextBlock Text="NES" Foreground="{DynamicResource BrText1}"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnFilterSNES"
@@ -120,7 +121,7 @@
                         Click="FilterBtn_Click">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Fill="#9B59B6" Margin="0,0,6,0"/>
-                                <TextBlock Text="SNES"/>
+                                <TextBlock Text="SNES" Foreground="{DynamicResource BrText1}"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnFilterN64"
@@ -130,7 +131,7 @@
                         Click="FilterBtn_Click">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Fill="#3498DB" Margin="0,0,6,0"/>
-                                <TextBlock Text="Nintendo 64"/>
+                                <TextBlock Text="Nintendo 64" Foreground="{DynamicResource BrText1}"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnFilterGCN"
@@ -140,7 +141,7 @@
                         Click="FilterBtn_Click">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Fill="#1ABC9C" Margin="0,0,6,0"/>
-                                <TextBlock Text="GameCube"/>
+                                <TextBlock Text="GameCube" Foreground="{DynamicResource BrText1}"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnFilterWii"
@@ -150,7 +151,7 @@
                         Click="FilterBtn_Click">
                             <StackPanel Orientation="Horizontal">
                                 <Ellipse Width="8" Height="8" Fill="#E67E22" Margin="0,0,6,0"/>
-                                <TextBlock Text="Wii"/>
+                                <TextBlock Text="Wii" Foreground="{DynamicResource BrText1}"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>
@@ -163,7 +164,7 @@
             Click="BtnAddGame_Click"/>
 
                     <!-- Divider -->
-                    <Separator Background="#1F00F0FF" Margin="20,0"/>
+                    <Separator Background="{DynamicResource BrBorder}" Margin="20,0"/>
 
                     <!-- Game grid -->
                     <WrapPanel x:Name="GameGrid" Margin="20,24,20,0" />
@@ -171,7 +172,7 @@
                     <!-- No-games placeholder -->
                     <TextBlock x:Name="NoGamesText"
                        Text="No games yet"
-                       Foreground="#555570"
+                       Foreground="{DynamicResource BrText3}"
                        FontSize="14"
                        Margin="20,40,0,0"
                        HorizontalAlignment="Center"/>
@@ -184,12 +185,12 @@
                     <!-- System folder list-->
                     <StackPanel x:Name="EmucoresFolderView" Visibility="Visible" Margin="24">
                         <TextBlock Text="EmuCores"
-                           Foreground="#E8E8F0"
+                           Foreground="{DynamicResource BrText1}"
                            FontSize="22"
                            FontWeight="SemiBold"
                            Margin="0,0,0,4"/>
                         <TextBlock Text="Select a system to configure its emulation core"
-                           Foreground="#555570"
+                           Foreground="{DynamicResource BrText3}"
                            FontSize="13"
                            Margin="0,0,0,20"/>
 
@@ -200,7 +201,7 @@
                                 <StackPanel HorizontalAlignment="Center">
                                     <Ellipse Width="14" Height="14" Fill="#E74C3C"
                                      HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                    <TextBlock Text="NES" Foreground="#E8E8F0"
+                                    <TextBlock Text="NES" Foreground="{DynamicResource BrText1}"
                                        FontSize="14" FontWeight="SemiBold"
                                        HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -211,7 +212,7 @@
                                 <StackPanel HorizontalAlignment="Center">
                                     <Ellipse Width="14" Height="14" Fill="#9B59B6"
                                      HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                    <TextBlock Text="SNES" Foreground="#E8E8F0"
+                                    <TextBlock Text="SNES" Foreground="{DynamicResource BrText1}"
                                        FontSize="14" FontWeight="SemiBold"
                                        HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -222,7 +223,7 @@
                                 <StackPanel HorizontalAlignment="Center">
                                     <Ellipse Width="14" Height="14" Fill="#3498DB"
                                      HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                    <TextBlock Text="Nintendo 64" Foreground="#E8E8F0"
+                                    <TextBlock Text="Nintendo 64" Foreground="{DynamicResource BrText1}"
                                        FontSize="13" FontWeight="SemiBold"
                                        HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -233,7 +234,7 @@
                                 <StackPanel HorizontalAlignment="Center">
                                     <Ellipse Width="14" Height="14" Fill="#1ABC9C"
                                      HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                    <TextBlock Text="GameCube" Foreground="#E8E8F0"
+                                    <TextBlock Text="GameCube" Foreground="{DynamicResource BrText1}"
                                        FontSize="13" FontWeight="SemiBold"
                                        HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -244,7 +245,7 @@
                                 <StackPanel HorizontalAlignment="Center">
                                     <Ellipse Width="14" Height="14" Fill="#E67E22"
                                      HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                    <TextBlock Text="Wii" Foreground="#E8E8F0"
+                                    <TextBlock Text="Wii" Foreground="{DynamicResource BrText1}"
                                        FontSize="14" FontWeight="SemiBold"
                                        HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -266,7 +267,7 @@
                             Click="EmucoreBack_Click"/>
                             <TextBlock x:Name="EmucoreSystemTitle"
                                Text="N64 — EmuCore Settings"
-                               Foreground="#E8E8F0"
+                               Foreground="{DynamicResource BrText1}"
                                FontSize="20"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"/>
@@ -293,25 +294,25 @@
                         <StackPanel x:Name="TabCore" Visibility="Visible">
 
                             <TextBlock Text="Select Core"
-                   Foreground="#9090B0"
+                   Foreground="{DynamicResource BrText2}"
                    FontSize="12"
                    Margin="0,0,0,6"/>
                             <ComboBox x:Name="CoreDropdown"
                   Width="300"
                   HorizontalAlignment="Left"
                   Margin="0,0,0,24"
-                  Background="#141422"
-                  Foreground="#E8E8F0"
-                  BorderBrush="#1F00F0FF"
+                  Background="{DynamicResource BrRaised}"
+                  Foreground="{DynamicResource BrText1}"
+                  BorderBrush="{DynamicResource BrBorder}"
                   FontSize="13"
                   Padding="10,6"/>
 
                             <TextBlock Text="Add Custom Core"
-                   Foreground="#9090B0"
+                   Foreground="{DynamicResource BrText2}"
                    FontSize="12"
                    Margin="0,0,0,6"/>
                             <TextBlock Text="Browse to a custom emulator .exe to add it as a core option"
-                   Foreground="#555570"
+                   Foreground="{DynamicResource BrText3}"
                    FontSize="11"
                    Margin="0,0,0,10"/>
                             <StackPanel Orientation="Horizontal">
@@ -342,7 +343,7 @@
                                 <!-- Header row -->
                                 <Grid Margin="0,0,0,16">
                                     <TextBlock Text="Key Bindings"
-                       Foreground="#9090B0"
+                       Foreground="{DynamicResource BrText2}"
                        FontSize="12"
                        VerticalAlignment="Center"/>
                                     <StackPanel Orientation="Horizontal"
@@ -360,12 +361,12 @@
                                 </Grid>
 
                                 <TextBlock Text="Click a box then press any key to bind it"
-                   Foreground="#555570"
+                   Foreground="{DynamicResource BrText3}"
                    FontSize="11"
                    Margin="0,0,0,16"/>
 
-                                <Border Background="#141422"
-                BorderBrush="#1F00F0FF"
+                                <Border Background="{DynamicResource BrRaised}"
+                BorderBrush="{DynamicResource BrBorder}"
                 BorderThickness="1"
                 CornerRadius="6"
                 Padding="14"
@@ -377,9 +378,9 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                             <TextBlock Text="PS5 Controller"
-                               Foreground="#E8E8F0" FontSize="13"/>
+                               Foreground="{DynamicResource BrText1}" FontSize="13"/>
                                             <TextBlock Text="Connect via USB or Bluetooth before launching"
-                               Foreground="#555570" FontSize="11"/>
+                               Foreground="{DynamicResource BrText3}" FontSize="11"/>
                                         </StackPanel>
                                         <ToggleButton x:Name="ToggleController"
                               Grid.Column="1"
@@ -400,13 +401,13 @@
 
                                     <!-- LEFT COLUMN -->
                                     <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                                        <TextBlock Text="ANALOGUE STICK" Foreground="#00F0FF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                        <TextBlock Text="ANALOGUE STICK" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindStickUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -414,7 +415,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindStickDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -422,7 +423,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindStickLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,16">
@@ -430,17 +431,17 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindStickRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
 
-                                        <TextBlock Text="BUTTONS" Foreground="#00F0FF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                        <TextBlock Text="BUTTONS" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="A" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="A" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindA" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -448,7 +449,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="B" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="B" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindB" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -456,7 +457,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Z" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Z" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindZ" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -464,7 +465,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Start" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Start" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindStart" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -472,7 +473,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="L" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="L" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindL" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -480,20 +481,20 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="R" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="R" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindR" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                     </StackPanel>
 
                                     <!-- RIGHT COLUMN -->
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Text="C BUTTONS" Foreground="#00F0FF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                        <TextBlock Text="C BUTTONS" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="C Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="C Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindCUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -501,7 +502,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="C Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="C Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindCDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -509,7 +510,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="C Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="C Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindCLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,16">
@@ -517,17 +518,17 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="C Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="C Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindCRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
 
-                                        <TextBlock Text="D-PAD" Foreground="#00F0FF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                        <TextBlock Text="D-PAD" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="D Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="D Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindDUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -535,7 +536,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="D Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="D Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindDDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -543,7 +544,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="D Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="D Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindDLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -551,7 +552,7 @@
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="D Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="D Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="BindDRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                     </StackPanel>
@@ -564,7 +565,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -572,7 +573,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -580,7 +581,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -588,7 +589,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -596,7 +597,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="A" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="A" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindA" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -604,7 +605,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="B" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="B" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindB" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -612,7 +613,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Start" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Start" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindStart" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -620,7 +621,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Select" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Select" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="NESBindSelect" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                 </StackPanel>
@@ -632,7 +633,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -640,7 +641,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -648,7 +649,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -656,7 +657,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -664,7 +665,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="A" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="A" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindA" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -672,7 +673,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="B" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="B" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindB" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -680,7 +681,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="X" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="X" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindX" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -688,7 +689,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Y" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Y" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindY" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -696,7 +697,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="L" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="L" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindL" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -704,7 +705,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="R" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="R" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindR" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -712,7 +713,7 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Start" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Start" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindStart" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -720,20 +721,20 @@
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Select" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Select" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="SNESBindSelect" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                 </StackPanel>
 
                                 <!-- Dolphin Controls -->
                                 <StackPanel x:Name="DolphinControlsPanel" Visibility="Collapsed">
-                                    <TextBlock Text="GAMECUBE" Foreground="#00F0FF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="GAMECUBE" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Stick Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Stick Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindStickUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -741,7 +742,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Stick Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Stick Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindStickDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -749,7 +750,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Stick Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Stick Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindStickLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -757,7 +758,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Stick Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Stick Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindStickRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -765,7 +766,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="A" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="A" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindA" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -773,7 +774,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="B" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="B" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindB" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -781,7 +782,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="X" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="X" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindX" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -789,7 +790,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Y" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Y" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindY" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -797,7 +798,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Z" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Z" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindZ" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -805,7 +806,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="L" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="L" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindL" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -813,7 +814,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="R" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="R" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindR" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,16">
@@ -821,17 +822,17 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Start" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Start" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindStart" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
 
-                                    <TextBlock Text="WII REMOTE" Foreground="#00F0FF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="WII REMOTE" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -839,7 +840,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -847,7 +848,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -855,7 +856,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -863,7 +864,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="A" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="A" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindA" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -871,7 +872,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="B" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="B" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindB" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -879,7 +880,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="1" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="1" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBind1" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,16">
@@ -887,11 +888,11 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="2" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="2" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBind2" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
-                                    <Border Background="#141422"
-        BorderBrush="#1F00F0FF"
+                                    <Border Background="{DynamicResource BrRaised}"
+        BorderBrush="{DynamicResource BrBorder}"
         BorderThickness="1"
         CornerRadius="6"
         Padding="14"
@@ -902,9 +903,9 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                <TextBlock Text="Nunchuck" Foreground="#E8E8F0" FontSize="13"/>
+                                                <TextBlock Text="Nunchuck" Foreground="{DynamicResource BrText1}" FontSize="13"/>
                                                 <TextBlock Text="Enable nunchuck controller attachment"
-                       Foreground="#555570" FontSize="11"/>
+                       Foreground="{DynamicResource BrText3}" FontSize="11"/>
                                             </StackPanel>
                                             <ToggleButton x:Name="ToggleNunchuck"
                                                 Grid.Column="1"
@@ -919,15 +920,15 @@
 
                                     </Border>
                                     <StackPanel x:Name="NunchuckSection" Visibility="Visible">
-                                        <TextBlock Text="NUNCHUCK" Foreground="#00F0FF" FontSize="10"
+                                        <TextBlock Text="NUNCHUCK" Foreground="{DynamicResource BrCyan}" FontSize="10"
            FontWeight="SemiBold" Margin="0,0,0,8"/>
-                                        <TextBlock Text="NUNCHUCK" Foreground="#00F0FF" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                        <TextBlock Text="NUNCHUCK" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="100"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Z" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Z" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="NunchuckBindZ" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -935,7 +936,7 @@
                                                 <ColumnDefinition Width="100"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Stick Up" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Stick Up" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="NunchuckBindUp" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -943,7 +944,7 @@
                                                 <ColumnDefinition Width="100"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Stick Down" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Stick Down" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="NunchuckBindDown" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -951,7 +952,7 @@
                                                 <ColumnDefinition Width="100"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Stick Left" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Stick Left" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="NunchuckBindLeft" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                         <Grid Margin="0,0,0,6">
@@ -959,7 +960,7 @@
                                                 <ColumnDefinition Width="100"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Stick Right" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Stick Right" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                             <TextBox x:Name="NunchuckBindRight" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                         </Grid>
                                     </StackPanel>
@@ -968,7 +969,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="+" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="+" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindPlus" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,6">
@@ -976,7 +977,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="-" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="-" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindMinus" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,16">
@@ -984,7 +985,7 @@
                                             <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Home" Foreground="#9090B0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Home" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindHome" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
                                 </StackPanel>
@@ -1014,7 +1015,7 @@
                     HorizontalAlignment="Left">
                         <StackPanel>
                             <TextBlock Text="v0.0.1 — First Build"
-                               Foreground="#00F0FF"
+                               Foreground="{DynamicResource BrCyan}"
                                FontSize="14"
                                FontWeight="SemiBold"
                             TextWrapping="Wrap"/>
@@ -1047,7 +1048,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Header bar (named so code-behind can measure its height) -->
+                    <!-- Header bar -->
                     <Border x:Name="NowPlayingHeader" Grid.Row="0"
             Background="#0A0A12"
             BorderBrush="#1F00F0FF"
@@ -1078,12 +1079,15 @@
                         </Grid>
                     </Border>
 
-                    <!-- Game area — clicking here refocuses -->
+                    <!-- Game area -->
                     <Border x:Name="EmuHost" Grid.Row="1"
             Background="Black"
             MouseLeftButtonDown="EmuHost_MouseDown"
             HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"/>
+            VerticalAlignment="Stretch"
+            SizeChanged="EmuHost_SizeChanged"/>
+
+                    
 
                 </Grid>
                 <!-- SETTINGS PAGE -->
@@ -1101,7 +1105,7 @@
             Padding="16,12">
                         <Grid>
                             <TextBlock Text="Settings"
-                       Foreground="#E8E8F0"
+                       Foreground="{DynamicResource BrCyan}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
                             <Button Content="💾  Save Settings"
@@ -1118,78 +1122,113 @@
 
                             <!-- ── THEME ── -->
                             <TextBlock Text="THEME"
-                       Foreground="#00F0FF"
-                       FontSize="11"
-                       FontWeight="SemiBold"
-                       Margin="0,0,0,10"/>
+           Foreground="{DynamicResource BrCyan}"
+           FontSize="11" FontWeight="SemiBold"
+           Margin="0,0,0,10"/>
                             <Border Background="#141422"
-                    BorderBrush="#1F00F0FF"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    Padding="16"
-                    Margin="0,0,0,24">
+        BorderBrush="#1F00F0FF"
+        BorderThickness="1" CornerRadius="6"
+        Padding="16" Margin="0,0,0,24">
                                 <StackPanel>
 
                                     <!-- Accent colour -->
-                                    <Grid Margin="0,0,0,12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="Accent Colour"
-                                       Foreground="#E8E8F0" FontSize="13"/>
-                                            <TextBlock Text="Main highlight colour"
-                                       Foreground="#555570" FontSize="11"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                            <TextBox x:Name="TxtAccentColour"
-                                     Style="{StaticResource DarkTextBox}"
-                                     Width="120" Margin="0,0,10,0"/>
-                                            <Border x:Name="AccentPreview"
-                                    Width="32" Height="32"
-                                    CornerRadius="4"
-                                    Background="#00F0FF"/>
-                                            <Button Content="Apply"
-                                    Style="{StaticResource SecondaryBtn}"
-                                    Padding="10,5" Margin="10,0,0,0"
-                                    Click="BtnApplyAccent_Click"/>
-                                        </StackPanel>
-                                    </Grid>
+                                    <TextBlock Text="Accent Colour"
+                   Foreground="{DynamicResource BrText1}"
+                   FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Main highlight colour used throughout the app"
+                   Foreground="{DynamicResource BrText3}"
+                   FontSize="11" Margin="0,0,0,10"/>
+                                    <WrapPanel Margin="0,0,0,20">
+                                        <Button x:Name="BtnAccentRed"
+                    Content="Red" Width="80" Height="32"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryBtn}"
+                    Tag="#FF4444"
+                    Click="BtnAccentColour_Click">
+                                            <Button.BorderBrush>
+                                                <SolidColorBrush Color="#FF4444"/>
+                                            </Button.BorderBrush>
+                                        </Button>
+                                        <Button x:Name="BtnAccentGreen"
+                    Content="Green" Width="80" Height="32"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryBtn}"
+                    Tag="#00FF88"
+                    Click="BtnAccentColour_Click">
+                                            <Button.BorderBrush>
+                                                <SolidColorBrush Color="#00FF88"/>
+                                            </Button.BorderBrush>
+                                        </Button>
+                                        <Button x:Name="BtnAccentBlue"
+                    Content="Blue" Width="80" Height="32"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryBtn}"
+                    Tag="#00F0FF"
+                    Click="BtnAccentColour_Click">
+                                            <Button.BorderBrush>
+                                                <SolidColorBrush Color="#00F0FF"/>
+                                            </Button.BorderBrush>
+                                        </Button>
+                                        <Button x:Name="BtnAccentPurple"
+                    Content="Purple" Width="80" Height="32"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryBtn}"
+                    Tag="#8B5CF6"
+                    Click="BtnAccentColour_Click">
+                                            <Button.BorderBrush>
+                                                <SolidColorBrush Color="#8B5CF6"/>
+                                            </Button.BorderBrush>
+                                        </Button>
+                                        <Button x:Name="BtnAccentYellow"
+                    Content="Yellow" Width="80" Height="32"
+                    Style="{StaticResource SecondaryBtn}"
+                    Tag="#FFD700"
+                    Click="BtnAccentColour_Click">
+                                            <Button.BorderBrush>
+                                                <SolidColorBrush Color="#FFD700"/>
+                                            </Button.BorderBrush>
+                                        </Button>
+                                    </WrapPanel>
 
                                     <!-- Background colour -->
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="Background Colour"
-                                       Foreground="#E8E8F0" FontSize="13"/>
-                                            <TextBlock Text="Main window background"
-                                       Foreground="#555570" FontSize="11"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                            <TextBox x:Name="TxtBgColour"
-                                     Style="{StaticResource DarkTextBox}"
-                                     Width="120" Margin="0,0,10,0"/>
-                                            <Border x:Name="BgPreview"
-                                    Width="32" Height="32"
-                                    CornerRadius="4"
-                                    Background="#0A0A12"/>
-                                            <Button Content="Apply"
-                                    Style="{StaticResource SecondaryBtn}"
-                                    Padding="10,5" Margin="10,0,0,0"
-                                    Click="BtnApplyBg_Click"/>
-                                        </StackPanel>
-                                    </Grid>
+                                    <TextBlock Text="Background Colour"
+                   Foreground="{DynamicResource BrText1}"
+                   FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Main window and sidebar background"
+                   Foreground="{DynamicResource BrText3}"
+                   FontSize="11" Margin="0,0,0,10"/>
+                                    <WrapPanel>
+                                        <Button x:Name="BtnBgTrueBlack"
+        Content="True Black" Width="90" Height="32"
+        Margin="0,0,8,0"
+        Style="{StaticResource SecondaryBtn}"
+        Tag="#000000"
+        Click="BtnBgColour_Click"/>
+                                        <Button x:Name="BtnBgBlack"
+        Content="Black" Width="80" Height="32"
+        Margin="0,0,8,0"
+        Style="{StaticResource SecondaryBtn}"
+        Tag="#0A0A12"
+        Click="BtnBgColour_Click"/>
+                                        <Button x:Name="BtnBgGrey"
+        Content="Grey" Width="80" Height="32"
+        Margin="0,0,8,0"
+        Style="{StaticResource SecondaryBtn}"
+        Tag="#1E1E2E"
+        Click="BtnBgColour_Click"/>
+                                        <Button x:Name="BtnBgWhite"
+        Content="White" Width="80" Height="32"
+        Style="{StaticResource SecondaryBtn}"
+        Tag="#F0F0F0"
+        Click="BtnBgColour_Click"/>
+                                    </WrapPanel>
 
                                 </StackPanel>
                             </Border>
 
                             <!-- ── AUDIO ── -->
                             <TextBlock Text="AUDIO"
-                       Foreground="#00F0FF"
+                       Foreground="{DynamicResource BrCyan}"
                        FontSize="11"
                        FontWeight="SemiBold"
                        Margin="0,0,0,10"/>
@@ -1254,7 +1293,7 @@
 
                             <!-- ── DISPLAY ── -->
                             <TextBlock Text="DISPLAY"
-                       Foreground="#00F0FF"
+                       Foreground="{DynamicResource BrCyan}"
                        FontSize="11"
                        FontWeight="SemiBold"
                        Margin="0,0,0,10"/>

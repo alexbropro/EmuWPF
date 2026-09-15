@@ -40,39 +40,57 @@ namespace EmuWPF
             return new SNESEmuInp();
         }
 
-        public void ApplyToSnes9x(string snes9xConfigDir)
+        public void ApplyToSnes9x(string snes9xDir)
         {
-            var cfgPath = Path.Combine(snes9xConfigDir, "snes9x.conf");
+            var cfgPath = System.IO.Path.Combine(snes9xDir, "snes9x.conf");
             if (!File.Exists(cfgPath)) return;
 
             var lines = new System.Collections.Generic.List<string>(
                 File.ReadAllLines(cfgPath));
 
-            void SetKey(string key, string value)
+            void SetValue(string key, string value)
             {
                 for (int i = 0; i < lines.Count; i++)
                 {
-                    if (lines[i].StartsWith(key + " = ") || lines[i].StartsWith(key + "="))
+                    var trimmed = lines[i].TrimStart();
+                    if (trimmed.StartsWith(key))
                     {
-                        lines[i] = $"{key} = {value}";
+                        lines[i] = $"     {key,-32}= {value}";
                         return;
                     }
                 }
-                lines.Add($"{key} = {value}");
+                lines.Add($"     {key,-32}= {value}");
             }
 
-            SetKey("Joypad0 Up", KeyToSnes9x(Up));
-            SetKey("Joypad0 Down", KeyToSnes9x(Down));
-            SetKey("Joypad0 Left", KeyToSnes9x(Left));
-            SetKey("Joypad0 Right", KeyToSnes9x(Right));
-            SetKey("Joypad0 A", KeyToSnes9x(A));
-            SetKey("Joypad0 B", KeyToSnes9x(B));
-            SetKey("Joypad0 X", KeyToSnes9x(X));
-            SetKey("Joypad0 Y", KeyToSnes9x(Y));
-            SetKey("Joypad0 L", KeyToSnes9x(L));
-            SetKey("Joypad0 R", KeyToSnes9x(R));
-            SetKey("Joypad0 Start", KeyToSnes9x(Start));
-            SetKey("Joypad0 Select", KeyToSnes9x(Select));
+            // Find or create [Controls\Win] section
+            bool sectionFound = false;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].Trim() == "[Controls\\Win]")
+                {
+                    sectionFound = true;
+                    break;
+                }
+            }
+
+            if (!sectionFound)
+            {
+                lines.Add("[Controls\\Win]");
+            }
+
+            SetValue("Joypad1:Enabled", "TRUE");
+            SetValue("Joypad1:Up", Up);
+            SetValue("Joypad1:Down", Down);
+            SetValue("Joypad1:Left", Left);
+            SetValue("Joypad1:Right", Right);
+            SetValue("Joypad1:A", A);
+            SetValue("Joypad1:B", B);
+            SetValue("Joypad1:X", X);
+            SetValue("Joypad1:Y", Y);
+            SetValue("Joypad1:L", L);
+            SetValue("Joypad1:R", R);
+            SetValue("Joypad1:Start", Start);
+            SetValue("Joypad1:Select", Select);
 
             File.WriteAllLines(cfgPath, lines);
         }

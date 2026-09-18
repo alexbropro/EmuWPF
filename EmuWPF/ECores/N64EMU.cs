@@ -63,7 +63,8 @@ namespace EmuWPF.ECores
                 FileName = exePath,
                 Arguments = $"{extraArgs} \"{gamePath}\"",
                 WorkingDirectory = Path.GetDirectoryName(exePath)!,
-                UseShellExecute = true,
+                UseShellExecute = false,
+                CreateNoWindow = false,
                 WindowStyle = ProcessWindowStyle.Hidden // request hidden window when possible
             });
 

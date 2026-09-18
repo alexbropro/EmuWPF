@@ -47,8 +47,9 @@ namespace EmuWPF
         public string NunchuckRight { get; set; } = "D";
         public bool UseNunchuck { get; set; } = true;
 
-        private static readonly string SavePath = Path.Combine(
-            AppContext.BaseDirectory, "dolphin_controls.json");
+        private static readonly string SavePath = System.IO.Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+    "ProjNimu", "dolphin_controls.json");
 
         public void Save()
         {

@@ -18,8 +18,9 @@ namespace EmuWPF
         public string Start { get; set; } = "Enter";
         public string Select { get; set; } = "RightShift";
 
-        private static readonly string SavePath = Path.Combine(
-            AppContext.BaseDirectory, "snes_controls.json");
+        private static readonly string SavePath = System.IO.Path.Combine(
+     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+     "ProjNimu", "snes_controls.json");
 
         public void Save()
         {

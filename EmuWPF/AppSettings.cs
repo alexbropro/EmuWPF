@@ -20,8 +20,9 @@ namespace EmuWPF
 
         // ── Save / Load ──────────────────────────────────────────────────
 
-        private static readonly string SavePath = Path.Combine(
-            AppContext.BaseDirectory, "settings.json");
+        private static readonly string SavePath = System.IO.Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+    "ProjNimu", "settings.json");
 
         public void Save()
         {

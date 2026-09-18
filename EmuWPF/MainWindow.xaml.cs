@@ -188,6 +188,8 @@ namespace EmuWPF
         }
         
 
+
+
         private IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0 && _activeDolphin != null)
@@ -242,6 +244,12 @@ namespace EmuWPF
 
         public MainWindow()
         {
+
+            // Ensure app data folder exists
+            var appDataDir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "ProjNimu");
+            Directory.CreateDirectory(appDataDir);
             InitializeComponent();
             LoadSettingsIntoUI();
             this.WindowStyle = WindowStyle.None;
@@ -250,12 +258,16 @@ namespace EmuWPF
             this.ResizeMode = ResizeMode.NoResize;
 
 
-           
+
+            
             _gamesFolder = System.IO.Path.Combine(
-    AppContext.BaseDirectory, "Games");
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "ProjNimu", "Games");
 
             if (!Directory.Exists(_gamesFolder))
                 Directory.CreateDirectory(_gamesFolder);
+
+            LoadGames();
 
             LoadGames();
         }
@@ -901,7 +913,7 @@ namespace EmuWPF
             this.WindowStyle = WindowStyle.None;
             this.WindowState = WindowState.Maximized;
             this.ResizeMode = ResizeMode.NoResize;
-            ShowTaskbar(true);
+            ShowTaskbar(false);
         }
 
         private void BrowseCore_Click(object sender, RoutedEventArgs e)

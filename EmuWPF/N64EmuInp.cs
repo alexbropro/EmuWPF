@@ -48,8 +48,9 @@ namespace EmuWPF
         public int DPadLeft { get; set; } = 13; // DPad left
         public int DPadRight { get; set; } = 14; // DPad right
 
-        private static readonly string SavePath = Path.Combine(
-            AppContext.BaseDirectory, "n64_controls.json");
+        private static readonly string SavePath = System.IO.Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+    "ProjNimu", "n64_controls.json");
 
         public void Save()
         {

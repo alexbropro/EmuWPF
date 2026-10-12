@@ -15,11 +15,14 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using WpfBrushes = System.Windows.Media.Brushes;
 using WpfColor = System.Windows.Media.Color;
+using System.Windows.Media.Animation;
+
 
 namespace EmuWPF
 {
@@ -123,6 +126,7 @@ namespace EmuWPF
         private string _currentSystem = "";
         private readonly string _gamesFolder;
         private AppSettings _settings = AppSettings.Load();
+        private bool _useV1 = false;   // sidebar "Launch Mode" toggle: true = V1, false = V2
         private N64EmuInp _n64Controls = N64EmuInp.Load();
         private TextBox? _activeBindBox = null;
 
@@ -169,14 +173,6 @@ namespace EmuWPF
             ApplyBackgroundColour(hex);
         }
 
-        private void InstallKeyboardHook()
-        {
-            _keyboardProc = KeyboardHookCallback;
-            using var process = System.Diagnostics.Process.GetCurrentProcess();
-            using var module = process.MainModule!;
-            _keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, _keyboardProc,
-                GetModuleHandle(module.ModuleName!), 0);
-        }
 
         private void UninstallKeyboardHook()
         {
@@ -219,6 +215,49 @@ namespace EmuWPF
             return CallNextHookEx(_keyboardHook, nCode, wParam, lParam);
         }
 
+        //Stripped background
+
+        private void StartStripeBackground()
+        {
+            const double size = 40;   // bigger = thicker stripes
+
+            var brush = new LinearGradientBrush
+            {
+                MappingMode = BrushMappingMode.Absolute,
+                SpreadMethod = GradientSpreadMethod.Repeat,
+                StartPoint = new System.Windows.Point(0, 0),
+                EndPoint = new System.Windows.Point(size, size)
+            };
+
+            // Two solid colours with hard edges = clean stripes
+            var dark = (Color)ColorConverter.ConvertFromString("#0F0F1A");
+            var light = (Color)ColorConverter.ConvertFromString("#1A1A2C");
+
+            brush.GradientStops.Add(new GradientStop(dark, 0.0));
+            brush.GradientStops.Add(new GradientStop(dark, 0.5));
+            brush.GradientStops.Add(new GradientStop(light, 0.5));
+            brush.GradientStops.Add(new GradientStop(light, 1.0));
+
+            var move = new TranslateTransform();
+            brush.Transform = move;
+            StripeBg.Fill = brush;
+
+            // Slide sideways; size * 2 makes the loop seamless
+            var anim = new DoubleAnimation(0, size * 2, TimeSpan.FromSeconds(4))
+            {
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            move.BeginAnimation(TranslateTransform.XProperty, anim);
+        }
+
+        private static SolidColorBrush Translucent(Color c, byte alpha)
+        {
+            var b = new SolidColorBrush(Color.FromArgb(alpha, c.R, c.G, c.B));
+            b.Freeze();
+            return b;
+        }
+
+
         private void ShowTaskbar(bool show)
         {
             IntPtr taskbar = FindWindow("Shell_TrayWnd", null);
@@ -251,15 +290,22 @@ namespace EmuWPF
                 "ProjNimu");
             Directory.CreateDirectory(appDataDir);
             InitializeComponent();
+            StartStripeBackground();
             LoadSettingsIntoUI();
+
+            // Restore the sidebar Launch Mode toggle from settings.json
+            _useV1 = _settings.UseV1Launch;
+            BLaunchMode.Content = _useV1 ? "Launch Mode: V1" : "Launch Mode: V2";
+
             this.WindowStyle = WindowStyle.None;
             this.WindowState = WindowState.Maximized;
             this.ResizeMode = ResizeMode.NoResize;
             this.ResizeMode = ResizeMode.NoResize;
-
-
-
             
+
+
+
+
             _gamesFolder = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "ProjNimu", "Games");
@@ -682,8 +728,127 @@ namespace EmuWPF
             return (x, y, w, h);
         }
 
+
+        private async void GameButton_ClickAsync(object? sender, RoutedEventArgs e)
+        {
+            
+            if (sender is System.Windows.Controls.Button b && b.Tag is string path)
+            {
+                var ext = System.IO.Path.GetExtension(path).ToLower();
+                var name = System.IO.Path.GetFileNameWithoutExtension(path);
+                bool isN64 = ext is ".n64" or ".z64" or ".v64";
+                bool isNES = ext is ".nes";
+                bool isSNES = ext is ".sfc" or ".smc";
+                bool isGCN = ext is ".iso" or ".gcm" or ".rvz" or ".gcz" or ".ciso";
+                bool isWii = ext is ".wbfs" or ".wia" or ".dol";
+                if (isNES)
+                {
+                    SetTaskbarAutoHide(true);  // hide taskbar
+                    this.WindowStyle = WindowStyle.None;
+                    this.WindowState = WindowState.Maximized;
+                    this.ResizeMode = ResizeMode.NoResize;
+                    this.Top = 0;
+                    this.Left = 0;
+                    this.Width = SystemParameters.PrimaryScreenWidth;
+                    this.Height = SystemParameters.PrimaryScreenHeight;
+                    ShowTaskbar(false);
+                    PageLibrary.Visibility = Visibility.Collapsed;
+                    PageNowPlaying.Visibility = Visibility.Visible;
+
+                    System.Threading.Thread.Sleep(100);
+                    PageNowPlaying.UpdateLayout();
+                    EmuHost.UpdateLayout();
+
+                    _activeNES = new NESEMU();
+                    var hwnd = await _activeNES.LaunchHiddenAsync(path);
+
+                    if (hwnd == IntPtr.Zero)
+                    {
+                        MessageBox.Show("FCEUX didn't open a window.", "Launch Failed");
+                        BtnStopEmu_Click(this, new RoutedEventArgs());   // restores taskbar and window
+                        return;
+                    }
+
+                    PageNowPlaying.UpdateLayout();
+                    EmuHost.UpdateLayout();
+                    var (x, y, w, h) = GetEmuHostPixelRect();
+                    _activeNES.EmbedAt(new WindowInteropHelper(this).Handle, x, y, w, h);
+
+                    var refocusTimer = new System.Windows.Threading.DispatcherTimer();
+                    refocusTimer.Interval = TimeSpan.FromMilliseconds(200);
+                    int refocusCount = 0;
+                    refocusTimer.Tick += (s, args) =>
+                    {
+                        if (_activeNES?.GameWindowHandle != IntPtr.Zero)
+                        {
+                            SetFocus(_activeNES.GameWindowHandle);
+                            SetForegroundWindow(_activeNES.GameWindowHandle);
+                            ShowTaskbar(false);
+                        }
+                        refocusCount++;
+                        if (refocusCount >= 15) refocusTimer.Stop();
+                        SetTaskbarAutoHide(true);
+                    };
+                    refocusTimer.Start();
+                    _isLaunching = false;
+                }
+                else if (isSNES)
+                {
+                    // Same window setup as the V1 SNES branch
+                    SetTaskbarAutoHide(true);
+                    ShowTaskbar(false);
+                    PageLibrary.Visibility = Visibility.Collapsed;
+                    PageNowPlaying.Visibility = Visibility.Visible;
+                    PageNowPlaying.UpdateLayout();
+                    EmuHost.UpdateLayout();
+
+                    _activeSNES = new SNESEMU();
+                    var hwnd = await _activeSNES.LaunchHiddenAsync(path);
+
+                    if (hwnd == IntPtr.Zero)
+                    {
+                        MessageBox.Show("Snes9x didn't open a window.", "Launch Failed");
+                        BtnStopEmu_Click(this, new RoutedEventArgs());   // restores taskbar and window
+                        return;
+                    }
+
+                    PageNowPlaying.UpdateLayout();
+                    EmuHost.UpdateLayout();
+                    var (x, y, w, h) = GetEmuHostPixelRect();
+                    _activeSNES.EmbedAt(new WindowInteropHelper(this).Handle, x, y, w, h);
+
+                    var refocusTimer = new System.Windows.Threading.DispatcherTimer();
+                    refocusTimer.Interval = TimeSpan.FromMilliseconds(200);
+                    int refocusCount = 0;
+                    refocusTimer.Tick += (s, args) =>
+                    {
+                        if (_activeSNES?.GameWindowHandle != IntPtr.Zero)
+                        {
+                            SetFocus(_activeSNES.GameWindowHandle);
+                            SetForegroundWindow(_activeSNES.GameWindowHandle);
+                        }
+                        refocusCount++;
+                        if (refocusCount >= 15) refocusTimer.Stop();
+                        SetTaskbarAutoHide(true);
+                    };
+                    refocusTimer.Start();
+                    _isLaunching = false;
+                }
+            }
+        }
+        private void BLaunchMode_Click(object sender, RoutedEventArgs e)
+        {
+            _useV1 = !_useV1;
+            BLaunchMode.Content = _useV1 ? "Launch Mode: V1" : "Launch Mode: V2";
+
+            // Remember the choice across restarts
+            _settings.UseV1Launch = _useV1;
+            try { _settings.Save(); } catch { /* not worth interrupting over */ }
+        }
+
         private void GameButton_Click(object? sender, RoutedEventArgs e)
         {
+            bool V1 = _useV1;
             if (_isLaunching) return;
             _isLaunching = true;
 
@@ -756,7 +921,7 @@ namespace EmuWPF
                         });
                     });
                 }
-                else if (isNES)
+                else if (isNES && V1 == true)
                 {
                     SetTaskbarAutoHide(true);  // hide taskbar
                     this.WindowStyle = WindowStyle.None;
@@ -789,21 +954,35 @@ namespace EmuWPF
                             var (x, y, w, h) = GetEmuHostPixelRect();
 
                             _activeNES.EmbedAt(mainHwnd, x, y, w, h);
+                            bool ANC = false;
 
                             var refocusTimer = new System.Windows.Threading.DispatcherTimer();
                             refocusTimer.Interval = TimeSpan.FromMilliseconds(200);
                             int refocusCount = 0;
                             refocusTimer.Tick += (s, args) =>
                             {
-                                if (_activeNES?.GameWindowHandle != IntPtr.Zero)
+                                while (ANC = false)
                                 {
-                                    SetFocus(_activeNES.GameWindowHandle);
-                                    SetForegroundWindow(_activeNES.GameWindowHandle);
-                                    ShowTaskbar(false);
+                                    try
+                                    {
+                                        if (_activeNES?.GameWindowHandle != IntPtr.Zero)
+                                        {
+                                            SetFocus(_activeNES.GameWindowHandle);
+                                            SetForegroundWindow(_activeNES.GameWindowHandle);
+                                            ShowTaskbar(false);
+                                        }
+                                        refocusCount++;
+                                        if (refocusCount >= 15) refocusTimer.Stop();
+                                        SetTaskbarAutoHide(true);
+                                        ANC = true;
+                                    }
+                                    catch (Exception)
+                                    {
+
+                                        throw;
+                                    }
                                 }
-                                refocusCount++;
-                                if (refocusCount >= 15) refocusTimer.Stop();
-                                SetTaskbarAutoHide(true);
+
                             };
                             refocusTimer.Start();
                             _isLaunching = false;
@@ -811,7 +990,11 @@ namespace EmuWPF
                     });
                     this.WindowStyle = WindowStyle.None;
                 }
-                else if (isSNES)
+                else if (isNES && V1 == false)
+                {
+                    GameButton_ClickAsync(sender, e);
+                }
+                else if (isSNES && V1 == true)
                 {
                     SetTaskbarAutoHide(true);
                     ShowTaskbar(false);
@@ -834,20 +1017,37 @@ namespace EmuWPF
                             int refocusCount = 0;
                             refocusTimer.Tick += (s, args) =>
                             {
-                                if (_activeSNES?.GameWindowHandle != IntPtr.Zero)
+                                while (true)
                                 {
-                                    SetFocus(_activeSNES.GameWindowHandle);
-                                    SetForegroundWindow(_activeSNES.GameWindowHandle);
-                                    
+                                    try
+                                    {
+                                        if (_activeSNES?.GameWindowHandle != IntPtr.Zero)
+                                        {
+                                            SetFocus(_activeSNES.GameWindowHandle);
+                                            SetForegroundWindow(_activeSNES.GameWindowHandle);
+                                            ShowTaskbar(false);
+                                        }
+                                        refocusCount++;
+                                        if (refocusCount >= 10) refocusTimer.Stop();
+                                        SetTaskbarAutoHide(true);
+                                        break;
+                                    }
+                                    catch (Exception)
+                                    {
+                                        // If the SNES window isn't ready yet, just wait for the next tick
+                                        break;
+                                    }
                                 }
-                                refocusCount++;
-                                if (refocusCount >= 15) refocusTimer.Stop();
-                                SetTaskbarAutoHide(true);
+                                
                             };
                             refocusTimer.Start();
                             _isLaunching = false;
                         });
                     });
+                }
+                else if (isSNES && V1 == false)
+                {
+                    GameButton_ClickAsync(sender, e);
                 }
                 else if (isGCN || isWii)
                 {
@@ -1007,6 +1207,10 @@ namespace EmuWPF
                 _activeDolphin?.Stop();
             }
             catch { }
+
+            // Always clear personal paths from fceux.cfg on app close,
+            // even if no NES game was running this session
+            NESEMU.ScrubFCEUXConfig();
         }
 
         //SETTINGS
@@ -1014,6 +1218,7 @@ namespace EmuWPF
 
         private void LoadSettingsIntoUI()
         {
+            SliderSidebarOpacity.Value = _settings.SidebarOpacity;   // before the theme is applied
             SliderVolume.Value = _settings.Volume;
             ChkMute.IsChecked = _settings.Muted;
             ChkFullscreen.IsChecked = _settings.Fullscreen;
@@ -1033,8 +1238,37 @@ namespace EmuWPF
             ApplyVolume(_settings.Volume, _settings.Muted);
         }
 
+        // ── Sidebar opacity ──────────────────────────────────────────────────────
+
+        private System.Windows.Media.Color _sidebarBaseColour =
+            System.Windows.Media.Color.FromRgb(0x1A, 0x1A, 0x2E);
+
+        // Uses the slider's live value, so changing the background colour
+        // doesn't undo an opacity change that hasn't been saved yet
+        private int CurrentSidebarOpacity() =>
+            SliderSidebarOpacity != null
+                ? (int)Math.Round(SliderSidebarOpacity.Value)
+                : _settings.SidebarOpacity;
+
+        private void ApplySidebarOpacity(int percent)
+        {
+            percent = Math.Clamp(percent, 0, 100);
+            byte alpha = (byte)Math.Round(percent * 255 / 100.0);
+            Application.Current.Resources["BrSidebar"] = Translucent(_sidebarBaseColour, alpha);
+        }
+
+        private void SliderSidebarOpacity_Changed(object sender,
+            RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (TxtSidebarOpacity == null) return;   // fires once during InitializeComponent
+            int pct = (int)Math.Round(SliderSidebarOpacity.Value);
+            TxtSidebarOpacity.Text = $"{pct}%";
+            ApplySidebarOpacity(pct);                 // live preview; saved with Save Settings
+        }
+
         private void BtnSaveSettings_Click(object sender, RoutedEventArgs e)
         {
+            _settings.SidebarOpacity = CurrentSidebarOpacity();
             _settings.Volume = (int)SliderVolume.Value;
             _settings.Muted = ChkMute.IsChecked == true;
             _settings.Fullscreen = ChkFullscreen.IsChecked == true;
@@ -1043,6 +1277,34 @@ namespace EmuWPF
                                           ?.Content?.ToString() ?? "800x600";
             _settings.Save();
             MessageBox.Show("Settings saved!", "Saved");
+        }
+
+        private void BtnResetSettings_Click(object sender, RoutedEventArgs e)
+        {
+            var answer = MessageBox.Show(
+                "Reset all settings to their defaults?\n\n" +
+                "This resets the theme, audio, display options and launch mode. " +
+                "System volume will be set back to 100% and unmuted.\n\n" +
+                "Your games and controller bindings are not affected.",
+                "Reset Settings", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (answer != MessageBoxResult.Yes) return;
+
+            _settings = new AppSettings();
+            _settings.Save();
+
+            // Push the defaults back into the UI and apply them live
+            LoadSettingsIntoUI();
+            _useV1 = _settings.UseV1Launch;
+            BLaunchMode.Content = _useV1 ? "Launch Mode: V1" : "Launch Mode: V2";
+
+            MessageBox.Show("Settings reset to defaults.", "Reset");
+        }
+
+        private void BQuit_Click(object sender, RoutedEventArgs e)
+        {
+            // Close() runs Window_Closing, which stops any running emulator,
+            // restores the taskbar and cleans the FCEUX config
+            Close();
         }
 
         // ── Theme ────────────────────────────────────────────────────────────────
@@ -1080,6 +1342,8 @@ namespace EmuWPF
         {
             try
             {
+                      // hover state (~65%)
+
                 var colour = (System.Windows.Media.Color)
                     System.Windows.Media.ColorConverter.ConvertFromString(hex);
                 var brush = new System.Windows.Media.SolidColorBrush(colour);
@@ -1110,6 +1374,17 @@ namespace EmuWPF
                     new System.Windows.Media.SolidColorBrush(raisedColour);
                 Application.Current.Resources["BrHover"] =
                     new System.Windows.Media.SolidColorBrush(hoverColour);
+
+                var res = Application.Current.Resources;
+
+                res["BrVoid"] = brush;   // keep solid
+                res["BrDeep"] = Translucent(hoverColour, 0xCC);         // headers / panels
+                res["BrSurface"] = Translucent(surfaceColour, 0x80);         // buttons and cards (~50%)
+
+                // Sidebar has its own brush: same colour, opacity from the Settings slider
+                _sidebarBaseColour = hoverColour;
+                ApplySidebarOpacity(CurrentSidebarOpacity());
+                res["BrRaised"] = Translucent(raisedColour, 0xA6);
 
                 this.Background = brush;
             }
@@ -1144,11 +1419,6 @@ namespace EmuWPF
 
             // Apply live as slider moves
             ApplyVolume(vol, ChkMute.IsChecked == true);
-        }
-
-        private void ChkMute_Changed(object sender, RoutedEventArgs e)
-        {
-            ApplyVolume((int)SliderVolume.Value, ChkMute.IsChecked == true);
         }
 
         // ── Resolution / Fullscreen (used at launch time in N64EMU) ─────────────
@@ -1298,9 +1568,26 @@ namespace EmuWPF
                 case "Wii":
                     SaveDolphinControlsFromUI();
                     _dolphinControls.Save();
+
+                    // Write to Debug bin (development)
                     var dolphinDir = FindEmulatorConfigDir("Dolphin");
-                    MessageBox.Show($"Dolphin config: {dolphinDir ?? "NULL"}", "Debug");
                     if (dolphinDir != null) _dolphinControls.ApplyToDolphin(dolphinDir);
+
+                    // Also write directly to ECores portable config
+                    var dir = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
+                    while (dir != null)
+                    {
+                        var ecoPath = System.IO.Path.Combine(
+                            dir.FullName, "ECores", "GC-WII", "Dolphin-x64", "User", "Config");
+                        if (System.IO.Directory.Exists(ecoPath) && ecoPath != dolphinDir)
+                        {
+                            _dolphinControls.ApplyToDolphin(ecoPath);
+                            break;
+                        }
+                        dir = dir.Parent;
+                    }
+
+                    MessageBox.Show("Controls saved!", "Saved");
                     break;
             }
             MessageBox.Show("Controls saved!", "Saved");
@@ -1618,6 +1905,13 @@ namespace EmuWPF
             SNESControlsPanel.Visibility = Visibility.Collapsed;
             DolphinControlsPanel.Visibility = Visibility.Visible;
 
+            // Each tab only shows its own controller:
+            // Wii → Wii Remote / Nunchuck, GameCube → GameCube pad
+            GCControlsSection.Visibility = _currentSystem == "Wii"
+                ? Visibility.Collapsed : Visibility.Visible;
+            WiiControlsSection.Visibility = _currentSystem == "GameCube"
+                ? Visibility.Collapsed : Visibility.Visible;
+
             GCBindStickUp.Text = _dolphinControls.GCStickUp;
             GCBindStickDown.Text = _dolphinControls.GCStickDown;
             GCBindStickLeft.Text = _dolphinControls.GCStickLeft;
@@ -1639,9 +1933,13 @@ namespace EmuWPF
             WiiBindB.Text = _dolphinControls.WiiB;
             WiiBind1.Text = _dolphinControls.Wii1;
             WiiBind2.Text = _dolphinControls.Wii2;
+            //AddShakeInLater Lmao
             WiiBindPlus.Text = _dolphinControls.WiiPlus;
             WiiBindMinus.Text = _dolphinControls.WiiMinus;
             WiiBindHome.Text = _dolphinControls.WiiHome;
+            WiiSX.Text = _dolphinControls.WiiShakeX;
+            WiiSY.Text = _dolphinControls.WiiShakeY;
+            WiiSZ.Text = _dolphinControls.WiiShakeZ;
             NunchuckBindZ.Text = _dolphinControls.NunchuckZ;
             NunchuckBindUp.Text = _dolphinControls.NunchuckUp;
             NunchuckBindDown.Text = _dolphinControls.NunchuckDown;
@@ -1679,6 +1977,9 @@ namespace EmuWPF
             _dolphinControls.WiiPlus = WiiBindPlus.Text;
             _dolphinControls.WiiMinus = WiiBindMinus.Text;
             _dolphinControls.WiiHome = WiiBindHome.Text;
+            WiiSX.Text = _dolphinControls.WiiShakeX;
+            WiiSY.Text = _dolphinControls.WiiShakeY;
+            WiiSZ.Text = _dolphinControls.WiiShakeZ;
             NunchuckBindZ.Text = _dolphinControls.NunchuckZ;
             NunchuckBindUp.Text = _dolphinControls.NunchuckUp;
             NunchuckBindDown.Text = _dolphinControls.NunchuckDown;

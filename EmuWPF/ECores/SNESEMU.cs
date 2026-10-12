@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Threading.Tasks;
 
 namespace EmuWPF.ECores
 {
@@ -33,6 +34,41 @@ namespace EmuWPF.ECores
 
         public string Name => "SNES";
         public IntPtr GameWindowHandle => _gameHwnd;
+
+        public async Task<IntPtr> LaunchHiddenAsync(string gamePath)
+        {
+            await Task.Run(TryTerminateOtherEmulators);
+
+            var exePath = FindEmulatorExecutable();
+            if (exePath == null)
+            {
+                MessageBox.Show("Snes9x not found.\n\nPlace snes9x-x64.exe in:\nECores\\SNES\\snes9x\\",
+                    "Missing Emulator");
+                return IntPtr.Zero;
+            }
+
+            EnsureSnes9xConfig(exePath);
+
+            using var catcher = new WindowCatcher();   // hook goes in BEFORE the process starts
+
+            _process = Process.Start(new ProcessStartInfo
+            {
+                FileName = exePath,
+                Arguments = $"\"{gamePath}\"",
+                WorkingDirectory = Path.GetDirectoryName(exePath)!,
+                UseShellExecute = false,
+                CreateNoWindow = false
+            });
+            if (_process == null)
+            {
+                MessageBox.Show("Failed to start Snes9x.", "Launch Error");
+                return IntPtr.Zero;
+            }
+
+            catcher.Watch(_process);
+            _gameHwnd = await catcher.WaitAsync(_process);
+            return _gameHwnd;
+        }
 
         public void Launch(string gamePath, string extraArgs = "")
         {
@@ -63,20 +99,19 @@ namespace EmuWPF.ECores
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    Thread.Sleep(50);
+                    Thread.Sleep(15);
                     HideConsoleWindowsForPid(pid);
                 }
             });
 
+            // Check every 10ms (was 50ms), check first then wait. Same 3s timeout.
             IntPtr hwnd = IntPtr.Zero;
-            for (int i = 0; i < 60; i++)
+            for (int i = 0; i < 300; i++)
             {
-                Thread.Sleep(50);
                 try { _process.Refresh(); } catch { break; }
                 hwnd = _process.MainWindowHandle;
-
                 if (hwnd != IntPtr.Zero) break;
-                ShowWindow(hwnd, SW_HIDE);
+                Thread.Sleep(5);
             }
 
             if (hwnd == IntPtr.Zero) hwnd = FindWindow(null, "Snes9x 1.62.3");
@@ -90,9 +125,9 @@ namespace EmuWPF.ECores
            
             System.Threading.Tasks.Task.Run(() =>
             {
-                for (int i = 0; i < 20; i++)
+                // Check every 20ms (was 200ms), check first then wait. Same 4s timeout.
+                for (int i = 0; i < 200; i++)
                 {
-                    System.Threading.Thread.Sleep(200);
                     IntPtr snesHwnd = FindWindow(null, "Snes9x 1.62.3");
                     if (snesHwnd != IntPtr.Zero)
                     {
@@ -101,14 +136,16 @@ namespace EmuWPF.ECores
                         SetWindowLong(snesHwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
                         break;
                     }
+                    System.Threading.Thread.Sleep(5);
                 }
             });
-            Thread.Sleep(1800);
+            Thread.Sleep(800);
             ShowWindow(_gameHwnd, SW_SHOW);
         }
 
-        public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)
+        public void EmbedAt1(IntPtr parentHwnd, int x, int y, int width, int height)
         {
+            //old EMBED FOR REFERENCE
             if (_gameHwnd == IntPtr.Zero) return;
 
             const int GWL_STYLE = -16;
@@ -125,6 +162,27 @@ namespace EmuWPF.ECores
             SetWindowLong(_gameHwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
             MoveWindow(_gameHwnd, x, y, width, height, true);
             ShowWindow(_gameHwnd, SW_SHOW);
+            SetForegroundWindow(_gameHwnd);
+            SetFocus(_gameHwnd);
+        }
+
+        const int WS_VISIBLE = 0x10000000;
+
+        public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)
+        {
+            if (_gameHwnd == IntPtr.Zero) return;
+
+            SetWindowLong(_gameHwnd, GWL_STYLE, WS_CHILD | WS_VISIBLE);
+            SetParent(_gameHwnd, parentHwnd);
+            MoveWindow(_gameHwnd, x, y, width, height, true);
+
+            // Only now does it become visible, already in position
+            WindowCatcher.Reveal(_gameHwnd);
+
+            // 1px nudge forces the renderer to resize its output after un-hiding
+            MoveWindow(_gameHwnd, x, y, width, height - 1, true);
+            MoveWindow(_gameHwnd, x, y, width, height, true);
+
             SetForegroundWindow(_gameHwnd);
             SetFocus(_gameHwnd);
         }
@@ -154,7 +212,7 @@ namespace EmuWPF.ECores
                     _process = null;
                 }
 
-                foreach (var proc in Process.GetProcessesByName("snes9x"))
+                foreach (var proc in Process.GetProcessesByName("snes9x-x64"))
                 {
                     try
                     {
@@ -187,7 +245,7 @@ namespace EmuWPF.ECores
 
         private void TryTerminateOtherEmulators()
         {
-            var known = new[] { "fceux", "nestopia", "snes9x",
+            var known = new[] { "fceux", "fceux64", "nestopia", "snes9x", "snes9x-x64",
                                 "bsnes", "mupen64plus-ui-console",
                                 "mupen64plus", "dolphin" };
             foreach (var proc in Process.GetProcesses())
@@ -214,6 +272,50 @@ namespace EmuWPF.ECores
                 dir = dir.Parent;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Snes9x reopens its window wherever it was last. Put it far off-screen
+        /// so it's never seen before EmbedAt moves it into place, and make sure
+        /// it isn't maximised or fullscreen.
+        /// </summary>
+        private static void EnsureSnes9xConfig(string exePath)
+        {
+            var confPath = Path.Combine(Path.GetDirectoryName(exePath)!, "snes9x.conf");
+            if (!File.Exists(confPath)) return;   // first run: Snes9x creates it
+
+            try
+            {
+                var lines = File.ReadAllLines(confPath);
+
+                void Set(string key, string value)
+                {
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        // Lines look like:  "         Window:Left   = 0   # comment"
+                        string trimmed = lines[i].TrimStart();
+                        if (!trimmed.StartsWith(key)) continue;
+
+                        string rest = trimmed.Substring(key.Length);
+                        if (!rest.TrimStart().StartsWith("=")) continue;
+
+                        int eq = lines[i].IndexOf('=');
+                        int hash = lines[i].IndexOf('#', eq);
+                        string comment = hash >= 0 ? "    " + lines[i].Substring(hash) : "";
+                        lines[i] = lines[i].Substring(0, eq + 1) + " " + value + comment;
+                        return;
+                    }
+                }
+
+                Set("Window:Left", "-20000");
+                Set("Window:Top", "-20000");
+                Set("Window:Maximized", "FALSE");
+                Set("Fullscreen:Enabled", "FALSE");
+                Set("Fullscreen:FullscreenOnOpen", "FALSE");
+
+                File.WriteAllLines(confPath, lines);
+            }
+            catch { /* best-effort: the window catcher still hides it */ }
         }
     }
 }

@@ -195,5 +195,6 @@
         <SolidColorBrush x:Key="BrText2"     Color="#9090B0"/>
         <SolidColorBrush x:Key="BrText3"     Color="#555570"/>
         <SolidColorBrush x:Key="BrHover"     Color="#1A1A2E"/>
+        <SolidColorBrush x:Key="BrSidebar"   Color="#1A1A2E"/> <!-- sidebar only; opacity set from Settings -->
     </Application.Resources>
 </Application>

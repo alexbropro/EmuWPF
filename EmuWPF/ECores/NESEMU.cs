@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace EmuWPF.ECores
 {
@@ -34,6 +36,39 @@ namespace EmuWPF.ECores
         public string Name => "NES";
         public IntPtr GameWindowHandle => _gameHwnd;
 
+        public async Task<IntPtr> LaunchHiddenAsync(string gamePath)
+        {
+            await Task.Run(TryTerminateOtherEmulators);
+
+            var exePath = FindEmulatorExecutable();
+            if (exePath == null)
+            {
+                MessageBox.Show("FCEUX not found.", "Missing Emulator");
+                return IntPtr.Zero;
+            }
+
+            EnsureFCEUXConfig();
+
+            using var catcher = new WindowCatcher();   // hook goes in BEFORE the process starts
+
+            _process = Process.Start(new ProcessStartInfo
+            {
+                FileName = exePath,
+                Arguments = $"\"{gamePath}\"",
+                WorkingDirectory = Path.GetDirectoryName(exePath)!,
+                UseShellExecute = false,
+                CreateNoWindow = false
+            });
+            if (_process == null)
+            {
+                MessageBox.Show("Failed to start FCEUX.", "Launch Error");
+                return IntPtr.Zero;
+            }
+            ScrubOnExit(_process);
+            catcher.Watch(_process);
+            _gameHwnd = await catcher.WaitAsync(_process);
+            return _gameHwnd;
+        }
         public void Launch(string gamePath, string extraArgs = "")
         {
             TryTerminateOtherEmulators();
@@ -57,6 +92,7 @@ namespace EmuWPF.ECores
             });
 
             if (_process == null) return;
+            ScrubOnExit(_process);
 
             int pid = _process.Id;
 
@@ -69,13 +105,14 @@ namespace EmuWPF.ECores
                 }
             });
 
+            // Check every 10ms (was 100ms), check first then wait. Same 6s timeout.
             IntPtr hwnd = IntPtr.Zero;
-            for (int i = 0; i < 60; i++)
+            for (int i = 0; i < 600; i++)
             {
-                Thread.Sleep(100);
                 try { _process.Refresh(); } catch { break; }
                 hwnd = _process.MainWindowHandle;
                 if (hwnd != IntPtr.Zero) break;
+                Thread.Sleep(10);
             }
 
             if (hwnd == IntPtr.Zero) hwnd = FindWindow("FCEUXWindowClass", null);
@@ -92,8 +129,10 @@ namespace EmuWPF.ECores
             
         }
 
-        public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)
+        public void EmbedAlt(IntPtr parentHwnd, int x, int y, int width, int height)
         {
+            //Old Embed method, kept for reference. Use EmbedAt instead.
+
             if (_gameHwnd == IntPtr.Zero) return;
 
             const int GWL_STYLE = -16;
@@ -124,6 +163,27 @@ namespace EmuWPF.ECores
             SetFocus(_gameHwnd);
         }
 
+        const int WS_VISIBLE = 0x10000000;
+
+        public void EmbedAt(IntPtr parentHwnd, int x, int y, int width, int height)
+        {
+            if (_gameHwnd == IntPtr.Zero) return;
+
+            SetWindowLong(_gameHwnd, GWL_STYLE, WS_CHILD | WS_VISIBLE);
+            SetParent(_gameHwnd, parentHwnd);
+            MoveWindow(_gameHwnd, x, y, width, height, true);
+
+            // Only now does it become visible, already in position
+            WindowCatcher.Reveal(_gameHwnd);
+
+            // 1px nudge forces the renderer to resize its output after un-hiding
+            MoveWindow(_gameHwnd, x, y, width, height - 1, true);
+            MoveWindow(_gameHwnd, x, y, width, height, true);
+
+            SetForegroundWindow(_gameHwnd);
+            SetFocus(_gameHwnd);
+        }
+
         public void ResizeTo(int x, int y, int width, int height)
         {
             if (_gameHwnd == IntPtr.Zero) return;
@@ -149,7 +209,8 @@ namespace EmuWPF.ECores
                     _process = null;
                 }
 
-                foreach (var proc in Process.GetProcessesByName("fceux"))
+                foreach (var name in new[] { "fceux", "fceux64" })
+                foreach (var proc in Process.GetProcessesByName(name))
                 {
                     try
                     {
@@ -160,6 +221,56 @@ namespace EmuWPF.ECores
                 }
             }
             catch { }
+
+            ScrubFCEUXConfig();
+        }
+
+        // ── Privacy: keep personal paths out of fceux.cfg ────────────────────────
+
+        /// <summary>Clears the config as soon as FCEUX exits, however it closes.</summary>
+        private static void ScrubOnExit(Process process)
+        {
+            try
+            {
+                process.EnableRaisingEvents = true;
+                process.Exited += (_, _) => ScrubFCEUXConfig();
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// FCEUX records the last ROM's full path (which includes the Windows
+        /// username and the game name) in ResumeROM and recent_files[0-9].
+        /// Blank those entries. Safe to call any time; does nothing if clean.
+        /// </summary>
+        public static void ScrubFCEUXConfig()
+        {
+            try
+            {
+                var exe = FindEmulatorExecutable();
+                if (exe == null) return;
+                var cfgPath = Path.Combine(Path.GetDirectoryName(exe)!, "fceux.cfg");
+                if (!File.Exists(cfgPath)) return;
+
+                var lines = File.ReadAllLines(cfgPath);
+                bool changed = false;
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    string? key =
+                        line.StartsWith("ResumeROM ") ? "ResumeROM" :
+                        line.StartsWith("recent_files[") ? line.Substring(0, line.IndexOf(']') + 1) :
+                        null;
+                    if (key == null) continue;
+
+                    string blank = key + " ";
+                    if (line != blank) { lines[i] = blank; changed = true; }
+                }
+
+                if (changed) File.WriteAllLines(cfgPath, lines);
+            }
+            catch { /* file briefly locked; the next close will clean it */ }
         }
 
         private void HideConsoleWindowsForPid(int pid)
@@ -244,6 +355,11 @@ namespace EmuWPF.ECores
             SetValue("fs", "0");
             // Disable force integral scales
             SetValue("vmspecial", "0");
+            // Open the main window far off-screen so it's never seen before
+            // it's embedded. EmbedAt moves it into place. (FCEUX resets
+            // exactly -32000, so use a different value.)
+            SetValue("MainWindow_wndx", "-20000");
+            SetValue("MainWindow_wndy", "-20000");
 
             File.WriteAllLines(cfgPath, lines);
         }

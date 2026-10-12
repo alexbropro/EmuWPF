@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
 
+
 namespace EmuWPF
 {
     public class NESEmuInp

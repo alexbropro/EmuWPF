@@ -10,20 +10,82 @@
         Background="{DynamicResource BrDeep}"
         KeyDown="Window_KeyDown" KeyUp="Window_KeyUp"
         WindowState="Maximized">
+    <Window.Resources>
+       
+    </Window.Resources>
     <Grid>
-
+    
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
+        <Rectangle x:Name="StripeBg"
+           IsHitTestVisible="False"
+           Grid.ColumnSpan="10"
+           Grid.RowSpan="10"/>
 
         <Border Grid.Column="0"
-            Background="{DynamicResource BrSurface}"
+            Background="{DynamicResource BrSidebar}"
             BorderBrush="{DynamicResource BrBorder}"
             BorderThickness="0,0,1,0">
 
-            <StackPanel Margin="10">
+            <DockPanel Margin="10" LastChildFill="True">
+
+            <!-- Quit: always red, ignores the accent colour. Declared first so it sits at the very bottom -->
+            <Button x:Name="BQuit"
+                DockPanel.Dock="Bottom"
+                Content="✕  Quit"
+                ToolTip="Close ProjNimu (stops any running game)"
+                Click="BQuit_Click">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#26FF4444"/>
+                        <Setter Property="Foreground" Value="#FF4444"/>
+                        <Setter Property="BorderBrush" Value="#66FF4444"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="12,9"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="6"
+                                        Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter VerticalAlignment="Center"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#4DFF4444"/>
+                                            <Setter TargetName="Bd" Property="BorderBrush" Value="#FF4444"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <!-- Dev toggle: switches NES/SNES between the V1 and V2 launch code -->
+            <Button x:Name="BLaunchMode"
+                DockPanel.Dock="Bottom"
+                Content="Launch Mode: V2"
+                ToolTip="Switch NES and SNES between the old (V1) and new (V2) launch code. Applies to the next game you start."
+                Style="{StaticResource NavButton}"
+                Tag="0"
+                Margin="0,0,0,6"
+                Click="BLaunchMode_Click"/>
+
+            <StackPanel>
                 <TextBlock Text="ProjNimu"
                        Foreground="{DynamicResource BrCyan}"
                        FontSize="16"
@@ -67,6 +129,7 @@
                 Visibility="Collapsed"
                 Click="NavBtn_Click"/>
             </StackPanel>
+            </DockPanel>
         </Border>
 
 
@@ -74,7 +137,7 @@
             Background="{DynamicResource BrSurface}">
 
             <Grid>
-
+                
                 <!-- HOME PAGE -->
                 <StackPanel x:Name="PageHome"
                     Visibility="Visible"
@@ -95,87 +158,103 @@
                 <!-- LIBRARY PAGE -->
                 <StackPanel x:Name="PageLibrary" Visibility="Collapsed">
 
+                    <!-- Header bar (matches sidebar) -->
+                    <Border Background="{DynamicResource BrDeep}"
+            BorderBrush="{DynamicResource BrBorder}"
+            BorderThickness="0,0,0,1"
+            Padding="20,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                    <!-- System filter-->
-                    <WrapPanel Margin="20,16,20,8">
-                        <Button x:Name="BtnFilterAll"
+                            <!-- System filter -->
+                            <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                <Button x:Name="BtnFilterAll"
                         Content="All"
                         Style="{StaticResource NavButton}"
                         Tag="1"
-                        Margin="0,0,6,6"
+                        Margin="0,3,6,3"
                         Click="FilterBtn_Click"/>
-                        <Button x:Name="BtnFilterNES"
-                        Style="{StaticResource NavButton}"
-                        Tag="0"
-                        Margin="0,0,6,6"
-                        Click="FilterBtn_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Fill="#E74C3C" Margin="0,0,6,0"/>
-                                <TextBlock Text="NES" Foreground="{DynamicResource BrText1}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnFilterSNES"
-                        Style="{StaticResource NavButton}"
-                        Tag="0"
-                        Margin="0,0,6,6"
-                        Click="FilterBtn_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Fill="#9B59B6" Margin="0,0,6,0"/>
-                                <TextBlock Text="SNES" Foreground="{DynamicResource BrText1}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnFilterN64"
-                        Style="{StaticResource NavButton}"
-                        Tag="0"
-                        Margin="0,0,6,6"
-                        Click="FilterBtn_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Fill="#3498DB" Margin="0,0,6,0"/>
-                                <TextBlock Text="Nintendo 64" Foreground="{DynamicResource BrText1}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnFilterGCN"
-                        Style="{StaticResource NavButton}"
-                        Tag="0"
-                        Margin="0,0,6,6"
-                        Click="FilterBtn_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Fill="#1ABC9C" Margin="0,0,6,0"/>
-                                <TextBlock Text="GameCube" Foreground="{DynamicResource BrText1}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnFilterWii"
-                        Style="{StaticResource NavButton}"
-                        Tag="0"
-                        Margin="0,0,6,6"
-                        Click="FilterBtn_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Fill="#E67E22" Margin="0,0,6,0"/>
-                                <TextBlock Text="Wii" Foreground="{DynamicResource BrText1}"/>
-                            </StackPanel>
-                        </Button>
-                    </WrapPanel>
 
-                    <Button Content="+ Add Game"
-            Style="{StaticResource PrimaryBtn}"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            Padding="14,7"
-            Click="BtnAddGame_Click"/>
+                                <Button x:Name="BtnFilterNES"
+                        Style="{StaticResource NavButton}"
+                        Tag="0"
+                        Margin="0,3,6,3"
+                        Click="FilterBtn_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Fill="#E74C3C" Margin="0,0,6,0"/>
+                                        <TextBlock Text="NES" Foreground="{DynamicResource BrText1}"/>
+                                    </StackPanel>
+                                </Button>
 
-                    <!-- Divider -->
-                    <Separator Background="{DynamicResource BrBorder}" Margin="20,0"/>
+                                <Button x:Name="BtnFilterSNES"
+                        Style="{StaticResource NavButton}"
+                        Tag="0"
+                        Margin="0,3,6,3"
+                        Click="FilterBtn_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Fill="#9B59B6" Margin="0,0,6,0"/>
+                                        <TextBlock Text="SNES" Foreground="{DynamicResource BrText1}"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button x:Name="BtnFilterN64"
+                        Style="{StaticResource NavButton}"
+                        Tag="0"
+                        Margin="0,3,6,3"
+                        Click="FilterBtn_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Fill="#3498DB" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Nintendo 64" Foreground="{DynamicResource BrText1}"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button x:Name="BtnFilterGCN"
+                        Style="{StaticResource NavButton}"
+                        Tag="0"
+                        Margin="0,3,6,3"
+                        Click="FilterBtn_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Fill="#1ABC9C" Margin="0,0,6,0"/>
+                                        <TextBlock Text="GameCube" Foreground="{DynamicResource BrText1}"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button x:Name="BtnFilterWii"
+                        Style="{StaticResource NavButton}"
+                        Tag="0"
+                        Margin="0,3,6,3"
+                        Click="FilterBtn_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Fill="#E67E22" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Wii" Foreground="{DynamicResource BrText1}"/>
+                                    </StackPanel>
+                                </Button>
+                            </WrapPanel>
+
+                            <!-- Add Game -->
+                            <Button Grid.Column="1"
+                    Content="+ Add Game"
+                    Style="{StaticResource PrimaryBtn}"
+                    VerticalAlignment="Center"
+                    Margin="16,0,0,0"
+                    Padding="14,7"
+                    Click="BtnAddGame_Click"/>
+                        </Grid>
+                    </Border>
 
                     <!-- Game grid -->
-                    <WrapPanel x:Name="GameGrid" Margin="20,24,20,0" />
+                    <WrapPanel x:Name="GameGrid" Margin="20,24,20,0"/>
 
                     <!-- No-games placeholder -->
                     <TextBlock x:Name="NoGamesText"
-                       Text="No games yet"
-                       Foreground="{DynamicResource BrText3}"
-                       FontSize="14"
-                       Margin="20,40,0,0"
-                       HorizontalAlignment="Center"/>
+               Text="No games yet"
+               Foreground="{DynamicResource BrText3}"
+               FontSize="14"
+               Margin="20,40,0,0"
+               HorizontalAlignment="Center"/>
 
                 </StackPanel>
 
@@ -301,7 +380,7 @@
                   Width="300"
                   HorizontalAlignment="Left"
                   Margin="0,0,0,24"
-                  Background="{DynamicResource BrRaised}"
+                  Background="{DynamicResource BrSurface}"
                   Foreground="{DynamicResource BrText1}"
                   BorderBrush="{DynamicResource BrBorder}"
                   FontSize="13"
@@ -365,7 +444,7 @@
                    FontSize="11"
                    Margin="0,0,0,16"/>
 
-                                <Border Background="{DynamicResource BrRaised}"
+                                <Border Background="{DynamicResource BrDeep}"
                 BorderBrush="{DynamicResource BrBorder}"
                 BorderThickness="1"
                 CornerRadius="6"
@@ -728,6 +807,8 @@
 
                                 <!-- Dolphin Controls -->
                                 <StackPanel x:Name="DolphinControlsPanel" Visibility="Collapsed">
+                                    <!-- GameCube section: hidden when the Wii system is selected -->
+                                    <StackPanel x:Name="GCControlsSection">
                                     <TextBlock Text="GAMECUBE" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions>
@@ -825,7 +906,10 @@
                                         <TextBlock Text="Start" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="GCBindStart" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
+                                    </StackPanel>
 
+                                    <!-- Wii section (Wii Remote + Nunchuck): hidden when the GameCube system is selected -->
+                                    <StackPanel x:Name="WiiControlsSection">
                                     <TextBlock Text="WII REMOTE" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions>
@@ -891,6 +975,30 @@
                                         <TextBlock Text="2" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBind2" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Shake X" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="WiiSX" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Shake Y" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="WiiSY" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Shake Z" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="WiiSZ" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
+                                    </Grid>
                                     <Border Background="{DynamicResource BrRaised}"
         BorderBrush="{DynamicResource BrBorder}"
         BorderThickness="1"
@@ -920,8 +1028,6 @@
 
                                     </Border>
                                     <StackPanel x:Name="NunchuckSection" Visibility="Visible">
-                                        <TextBlock Text="NUNCHUCK" Foreground="{DynamicResource BrCyan}" FontSize="10"
-           FontWeight="SemiBold" Margin="0,0,0,8"/>
                                         <TextBlock Text="NUNCHUCK" Foreground="{DynamicResource BrCyan}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
@@ -988,6 +1094,7 @@
                                         <TextBlock Text="Home" Foreground="{DynamicResource BrText2}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBox x:Name="WiiBindHome" Grid.Column="1" Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Hand" PreviewKeyDown="BindBox_KeyDown" GotFocus="BindBox_GotFocus" LostFocus="BindBox_LostFocus"/>
                                     </Grid>
+                                    </StackPanel>
                                 </StackPanel>
 
                             </StackPanel>
@@ -996,7 +1103,9 @@
                 </Grid>
 
                 <!-- UPDATES PAGE -->
-                <StackPanel x:Name="PageUpdates" Visibility="Collapsed" Margin="24">
+                <ScrollViewer x:Name="PageUpdates" Visibility="Collapsed"
+                              VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="24">
                     <TextBlock Text="Updates"
                        Foreground="#E8E8F0"
                        FontSize="22"
@@ -1006,6 +1115,107 @@
                        Foreground="#555570"
                        FontSize="13"
                        Margin="0,0,0,20"/>
+
+                    <!-- v1.02 -->
+                    <Border Background="#141422"
+                    BorderBrush="#1F00F0FF"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="16"
+                    MaxWidth="1000"
+                    Margin="0,0,0,12"
+                    HorizontalAlignment="Left">
+                        <StackPanel>
+                            <TextBlock Text="v1.02"
+                               Foreground="{DynamicResource BrCyan}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Better Wii optimisation"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,6,0,2"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Faster catch on NES and SNES"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,2,0,2"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Implemented 2 different ways of catching the SNES and NES windows"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,2,0,2"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Added more Wii inputs"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,2,0,2"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Other fixes"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,2,0,0"
+                               TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- v1.01 -->
+                    <Border Background="#141422"
+                    BorderBrush="#1F00F0FF"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="16"
+                    MaxWidth="1000"
+                    Margin="0,0,0,12"
+                    HorizontalAlignment="Left">
+                        <StackPanel>
+                            <TextBlock Text="v1.01"
+                               Foreground="{DynamicResource BrCyan}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Quick lil bug fixes related to SNES and NES input"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,6,0,2"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Fixed the lag on Dolphin"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,2,0,2"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Improved emulator loading times"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,2,0,0"
+                               TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- v1.0 -->
+                    <Border Background="#141422"
+                    BorderBrush="#1F00F0FF"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="16"
+                    MaxWidth="1000"
+                    Margin="0,0,0,12"
+                    HorizontalAlignment="Left">
+                        <StackPanel>
+                            <TextBlock Text="v1.0 — Main Release"
+                               Foreground="{DynamicResource BrCyan}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+                            <TextBlock Text="• Finished implementing all the game emulators and polished up any major bugs or issues"
+                               Foreground="#9090B0"
+                               FontSize="12"
+                               Margin="0,6,0,0"
+                               TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- v0.0.1 -->
                     <Border Background="#141422"
                     BorderBrush="#1F00F0FF"
                     BorderThickness="1"
@@ -1042,6 +1252,7 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
+                </ScrollViewer>
                 <Grid x:Name="PageNowPlaying" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1056,7 +1267,8 @@
             Padding="16,10">
                         <Grid>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="▶  " Foreground="#00F0FF" FontSize="14"/>
+                                
+                                <TextBlock Text="▶  " Foreground="{DynamicResource BrCyan}" FontSize="14"/>
                                 <TextBlock x:Name="NowPlayingTitle"
                            Text="Game Title"
                            Foreground="#E8E8F0"
@@ -1108,11 +1320,18 @@
                        Foreground="{DynamicResource BrCyan}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
-                            <Button Content="💾  Save Settings"
-                    Style="{StaticResource PrimaryBtn}"
-                    HorizontalAlignment="Right"
-                    Padding="14,6"
-                    Click="BtnSaveSettings_Click"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="↺  Reset Settings"
+                        Style="{StaticResource SecondaryBtn}"
+                        ToolTip="Restore theme, audio, display and launch mode to their defaults"
+                        Padding="14,6"
+                        Margin="0,0,8,0"
+                        Click="BtnResetSettings_Click"/>
+                                <Button Content="💾  Save Settings"
+                        Style="{StaticResource PrimaryBtn}"
+                        Padding="14,6"
+                        Click="BtnSaveSettings_Click"/>
+                            </StackPanel>
                         </Grid>
                     </Border>
 
@@ -1222,6 +1441,29 @@
         Tag="#F0F0F0"
         Click="BtnBgColour_Click"/>
                                     </WrapPanel>
+
+                                    <!-- Sidebar opacity -->
+                                    <TextBlock Text="Sidebar Opacity"
+                   Foreground="{DynamicResource BrText1}"
+                   FontSize="13" Margin="0,20,0,4"/>
+                                    <TextBlock Text="How see-through the sidebar is. 100% is solid"
+                   Foreground="{DynamicResource BrText3}"
+                   FontSize="11" Margin="0,0,0,10"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Slider x:Name="SliderSidebarOpacity"
+                    Minimum="0" Maximum="100" Value="100"
+                    Width="200"
+                    SmallChange="1" LargeChange="10"
+                    IsSnapToTickEnabled="True" TickFrequency="1"
+                    VerticalAlignment="Center"
+                    ValueChanged="SliderSidebarOpacity_Changed"/>
+                                        <TextBlock x:Name="TxtSidebarOpacity"
+                    Text="100%"
+                    Foreground="{DynamicResource BrText1}"
+                    FontSize="13"
+                    Margin="12,0,0,0"
+                    VerticalAlignment="Center"/>
+                                    </StackPanel>
 
                                 </StackPanel>
                             </Border>

@@ -9,6 +9,7 @@ namespace EmuWPF
         // Theme
         public string AccentColour { get; set; } = "#00F0FF";
         public string BackgroundColour { get; set; } = "#0A0A12";
+        public int SidebarOpacity { get; set; } = 100;   // 0–100 %, 100 = solid
 
         // Audio
         public int Volume { get; set; } = 100;
@@ -17,6 +18,9 @@ namespace EmuWPF
         // Display
         public string Resolution { get; set; } = "800x600";
         public bool Fullscreen { get; set; } = false;
+
+        // Dev: sidebar Launch Mode toggle (true = V1, false = V2) for NES/SNES
+        public bool UseV1Launch { get; set; } = false;
 
         // ── Save / Load ──────────────────────────────────────────────────
 
@@ -28,6 +32,7 @@ namespace EmuWPF
         {
             var json = JsonSerializer.Serialize(this,
                 new JsonSerializerOptions { WriteIndented = true });
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(SavePath)!);
             File.WriteAllText(SavePath, json);
         }
 
